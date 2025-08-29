@@ -5,6 +5,7 @@ This module contains the functionality for the Add New Place page,
 including the place form and the Nearby Search API testing section.
 """
 
+import random
 import streamlit as st
 import json
 from typing import Callable, Dict, Any
@@ -39,9 +40,75 @@ class AddPlacePage:
         
         # Render the API testing section
         self._render_api_testing_section()
+        
+        # Render the place details demo section
+        # self.test_place_details_demo()
+    
+    def place_details(self, place_id: str) -> Dict[str, Any]:
+        """
+        Get detailed information about a place using the Place Details API.
+        
+        Args:
+            place_id: The place ID to get details for
+            
+        Returns:
+            Dictionary containing the place details or error information
+        """
+        try:
+            # Initialize API tester
+            api_tester = OLAMapsAPITester()
+            
+            # Load Places API collection
+            api_tester.load_collection("Places API.postman_collection.json")
+            
+            if not api_tester.endpoints:
+                return {"error": "Failed to load Places API collection"}
+            
+            # Get the Place Details endpoint
+            place_details_endpoint = api_tester.get_endpoint_by_name("2) Place Details - GET")
+            
+            if not place_details_endpoint:
+                return {"error": "Place Details endpoint not found in the Places API collection"}
+            
+            # Prepare custom parameters with the place_id
+            custom_params = {
+                "place_id": place_id
+            }
+            
+            # Ensure URL has proper protocol
+            if not place_details_endpoint.url.startswith("https://"):
+                place_details_endpoint.url = f"https://{place_details_endpoint.url}"
+            
+            # Test the endpoint
+            result = api_tester.test_endpoint(place_details_endpoint, custom_params)
+            
+            # Return the result
+            if result.get("success", False):
+                return {
+                    "success": True,
+                    "data": result.get("response", {}),
+                    "status_code": result.get("status_code"),
+                    "response_time": result.get("response_time")
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": result.get("error", "Unknown error occurred"),
+                    "status_code": result.get("status_code"),
+                    "response_time": result.get("response_time")
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error in place_details: {str(e)}")
+            return {
+                "success": False,
+                "error": f"Exception occurred: {str(e)}"
+            }
+
     def load_csv(self, file_path, column_name):
         """Load the CSV file."""
         df = pd.read_csv(file_path)
+        # 28.6174167,77.2129167
         return df.drop_duplicates(subset=[column_name])[column_name].tolist()
     
     def _render_api_testing_section(self):
@@ -74,82 +141,82 @@ class AddPlacePage:
             st.error(f"❌ Error initializing API tester: {str(e)}")
             self.logger.error("Error in API testing section", error=str(e))
     
-    def _render_endpoint_configuration(self, api_tester: OLAMapsAPITester, nearby_endpoint):
-        """Render the endpoint configuration section."""
-        st.markdown("### 📍 Nearby Search API Configuration")
+    # def _render_endpoint_configuration(self, api_tester: OLAMapsAPITester, nearby_endpoint):
+    #     """Render the endpoint configuration section."""
+    #     st.markdown("### 📍 Nearby Search API Configuration")
         
-        # Display endpoint details
-        col1, col2 = st.columns([2, 1])
+    #     # Display endpoint details
+    #     col1, col2 = st.columns([2, 1])
         
-        with col1:
-            st.markdown(f"""
-            **Endpoint Details:**
-            - **Method:** {nearby_endpoint.method}
-            - **Category:** {nearby_endpoint.category}
-            - **Description:** {nearby_endpoint.description}
-            """)
+    #     with col1:
+    #         st.markdown(f"""
+    #         **Endpoint Details:**
+    #         - **Method:** {nearby_endpoint.method}
+    #         - **Category:** {nearby_endpoint.category}
+    #         - **Description:** {nearby_endpoint.description}
+    #         """)
         
-        with col2:
-            st.markdown(f"""
-            **Base URL:** `{api_tester.base_url}`
-            **API Key:** `{api_tester.api_key[:10]}...`
-            """)
+    #     with col2:
+    #         st.markdown(f"""
+    #         **Base URL:** `{api_tester.base_url}`
+    #         **API Key:** `{api_tester.api_key[:10]}...`
+    #         """)
     
-    def _render_parameter_configuration(self, api_tester: OLAMapsAPITester):
-        """Render the dynamic parameters configuration section."""
-        st.markdown("### ⚙️ Dynamic Parameters")
+    # def _render_parameter_configuration(self, api_tester: OLAMapsAPITester):
+    #     """Render the dynamic parameters configuration section."""
+    #     st.markdown("### ⚙️ Dynamic Parameters")
         
-        col1, col2, col3 = st.columns(3)
+    #     col1, col2, col3 = st.columns(3)
         
-        with col1:
-            location = st.text_input(
-                "Location (lat,lng)",
-                value="12.931544865377818,77.61638622280486",
-                help="Enter latitude and longitude separated by comma"
-            )
+    #     with col1:
+    #         location = st.text_input(
+    #             "Location (lat,lng)",
+    #             value="12.931544865377818,77.61638622280486",
+    #             help="Enter latitude and longitude separated by comma"
+    #         )
             
-            types = st.text_input(
-                "Types",
-                value="restaurant",
-                help="Enter place types (e.g., restaurant, hotel, tourist_attraction)"
-            )
+    #         types = st.text_input(
+    #             "Types",
+    #             value="restaurant",
+    #             help="Enter place types (e.g., restaurant, hotel, tourist_attraction)"
+    #         )
         
-        with col2:
-            radius = st.number_input(
-                "Radius (meters)",
-                min_value=100,
-                max_value=50000,
-                value=10000,
-                step=100,
-                help="Search radius in meters"
-            )
+    #     with col2:
+    #         radius = st.number_input(
+    #             "Radius (meters)",
+    #             min_value=100,
+    #             max_value=50000,
+    #             value=10000,
+    #             step=100,
+    #             help="Search radius in meters"
+    #         )
             
-            rank_by = st.selectbox(
-                "Rank By",
-                options=["popular", "distance", "rating"],
-                index=0,
-                help="How to rank the results"
-            )
+    #         rank_by = st.selectbox(
+    #             "Rank By",
+    #             options=["popular", "distance", "rating"],
+    #             index=0,
+    #             help="How to rank the results"
+    #         )
         
-        with col3:
-            # Show current API configuration
-            st.markdown("**Current Configuration:**")
-            st.json({
-                "location": location,
-                "types": types,
-                "radius": radius,
-                "rank_by": rank_by,
-                "api_key": f"{api_tester.api_key[:10]}...",
-                "bearer_token": f"{api_tester.bearer_token[:20]}..."
-            })
+    #     with col3:
+    #         # Show current API configuration
+    #         st.markdown("**Current Configuration:**")
+    #         st.json({
+    #             "location": location,
+    #             "types": types,
+    #             "radius": radius,
+    #             "rank_by": rank_by,
+    #             "api_key": f"{api_tester.api_key[:10]}...",
+    #             "bearer_token": f"{api_tester.bearer_token[:20]}..."
+    #         })
         
-        # Store parameters in session state for use in test execution
-        st.session_state.api_params = {
-            "location": location,
-            "types": types,
-            "radius": radius,
-            "rank_by": rank_by
-        }
+    #     # Store parameters in session state for use in test execution
+    #     st.session_state.api_params = {
+    #         "location": location,
+    #         "types": types,
+    #         "radius": radius,
+    #         "rank_by": rank_by
+    #     }
     
     def _render_test_execution(self, api_tester: OLAMapsAPITester, nearby_endpoint,pincodes:list[str]):
         """Render the test execution section."""
@@ -159,10 +226,11 @@ class AddPlacePage:
                 try:
                     # Get parameters from session state
                     params = st.session_state.get("api_params", {})
-                    logger.info(f"Pincodes: {pincodes}")
+                    # logger.info(f"Pincodes: {pincodes}")
                     # Prepare custom parameters
+                    pincode = random.choice(pincodes)
                     custom_params = {
-                        "location": params.get("location", "12.931544865377818,77.61638622280486"),
+                        "location": pincode,
                         "types": params.get("types", "restaurant"),
                         "radius": str(params.get("radius", 10000)),
                         "rankBy": params.get("rank_by", "popular")
@@ -174,13 +242,13 @@ class AddPlacePage:
                     result = api_tester.test_endpoint(nearby_endpoint, custom_params)
                     # logger.info(f"Result: {result}")
                     # Display results
-                    self._render_test_results(nearby_endpoint, result)
+                    self._render_test_results(nearby_endpoint, result,pincode)
                     
                 except Exception as e:
                     st.error(f"Error testing API: {str(e)}")
                     self.logger.error("Error testing Nearby Search API", error=str(e))
     
-    def _render_test_results(self, nearby_endpoint, result):
+    def _render_test_results(self, nearby_endpoint, result,pincode):
         """Render the test results section."""
         st.markdown("### 📊 API Test Results")
         
@@ -205,23 +273,55 @@ class AddPlacePage:
         #     st.markdown(f"**Response Time:** {result.get('response_time', 'N/A')} ms")
         
         # Display response data
-        st.markdown("### 📄 Response Data")
+        # st.markdown("### 📄 Response Data")
         
         response_data = result.get("response", {})
-        
+        logger.info(f"Response data: {pincode}")
         if response_data:
             # Try to parse and display the response nicely
             try:
                 if isinstance(response_data, str):
                     response_data = json.loads(response_data)
                 
-                # # Display as JSON
-                # st.json(response_data)
-                for prediction in response_data["predictions"]:
-                    place_data = self.place_details(prediction["place_id"])
-                    st.markdown(f"**{prediction['place_id']}**")
-                    st.markdown(f"**{prediction['description']}**")
-                    st.markdown(f"**{prediction['types']}**")
+                # Display predictions with place details
+                if "predictions" in response_data:
+                    st.markdown("### 🏢 Place Predictions with Details")
+                    for i, prediction in enumerate(response_data["predictions"]):  # Show first 5 predictions
+                        with st.expander(f"📍 {prediction.get('description', 'Unknown Place')}", expanded=False):
+                            # Get detailed place information
+                            logger.info(f"Place data: {prediction}")
+                            place_data = self.place_details(prediction["place_id"])
+                            if place_data.get("success") and place_data.get("data"):
+                                location = place_data["data"]["result"]["geometry"]["location"]
+                                logger.info(f"Location: {location}")
+                                place_detail = {
+                                    "pincode": pincode,
+                                    "place_id": prediction['place_id']	,
+                                    "name": result.get('name', 'N/A'),
+                                    "address": result.get('formatted_address', 'N/A'),
+                                    "latitude": location.get('lat', 'N/A'),
+                                    "longitude": location.get('lng', 'N/A'),
+                                    "description": prediction.get('description', 'N/A'),
+                                    "types": ', '.join(prediction.get('types', [])),
+                                }
+                                for component in place_data["data"]["result"]["address_components"]:
+                                    if "postal_code" in component:
+                                        place_detail["postal_code"] = component['postal_code']
+                                        break
+                                st.json(place_detail)
+                            else:
+                                st.warning("No detailed information available")
+                            
+                            # col1, col2 = st.columns([1, 2])
+                            
+                            # with col1:
+                            #     # if place_data.get("success"):
+                            #     #     st.success("✅ Place details retrieved successfully")
+                            #     # else:
+                            #     #     st.error(f"❌ Failed to get place details: {place_data.get('error', 'Unknown error')}")
+                            
+                            # with col2:
+                            #     st.markdown("**Detailed Information:**")
                 # If it's a successful response with places, show a summary
                 if isinstance(response_data, dict):
                     places = response_data.get("results", [])
@@ -273,6 +373,67 @@ GET {api_tester.base_url}/places/v1/nearbysearch
 &rankBy={rank_by}
 &api_key={api_tester.api_key[:10]}...
         """.strip())
+    
+    # def test_place_details_demo(self):
+    #     """Demonstrate the place_details function with a sample place_id."""
+    #     st.markdown("---")
+    #     st.header("🧪 Place Details API Demo")
+    #     st.markdown("Test the Place Details API with a sample place ID.")
+        
+    #     # Sample place ID from the Postman collection
+    #     sample_place_id = "ola-platform:a79ed32419962a11a588ea92b83ca78e"
+        
+    #     col1, col2 = st.columns([2, 1])
+        
+    #     with col1:
+    #         place_id = st.text_input(
+    #             "Place ID",
+    #             value=sample_place_id,
+    #             help="Enter a place ID to get detailed information"
+    #         )
+        
+    #     with col2:
+    #         if st.button("🔍 Get Place Details", type="primary"):
+    #             with st.spinner("Fetching place details..."):
+    #                 result = self.place_details(place_id)
+                    
+    #                 if result.get("success"):
+    #                     st.success("✅ Place details retrieved successfully!")
+                        
+    #                     # Display the results
+    #                     detail_data = result.get("data", {})
+    #                     if "result" in detail_data:
+    #                         place_info = detail_data["result"]
+                            
+    #                         st.markdown("### 📍 Place Information")
+    #                         st.markdown(f"**Name:** {place_info.get('name', 'N/A')}")
+    #                         st.markdown(f"**Address:** {place_info.get('formatted_address', 'N/A')}")
+    #                         st.markdown(f"**Phone:** {place_info.get('formatted_phone_number', 'N/A')}")
+    #                         st.markdown(f"**Website:** {place_info.get('website', 'N/A')}")
+    #                         st.markdown(f"**Rating:** {place_info.get('rating', 'N/A')}")
+    #                         st.markdown(f"**Price Level:** {place_info.get('price_level', 'N/A')}")
+                            
+    #                         # Show geometry
+    #                         if "geometry" in place_info and "location" in place_info["geometry"]:
+    #                             location = place_info["geometry"]["location"]
+    #                             st.markdown(f"**Coordinates:** {location.get('lat', 'N/A')}, {location.get('lng', 'N/A')}")
+                            
+    #                         # Show opening hours
+    #                         if "opening_hours" in place_info:
+    #                             opening_hours = place_info["opening_hours"]
+    #                             st.markdown(f"**Open Now:** {opening_hours.get('open_now', 'N/A')}")
+    #                             if opening_hours.get('weekday_text'):
+    #                                 st.markdown("**Opening Hours:**")
+    #                                 for day in opening_hours["weekday_text"]:
+    #                                     st.markdown(f"- {day}")
+                        
+    #                     st.markdown(f"**Response Time:** {result.get('response_time', 'N/A')} ms")
+                        
+    #                     # Show raw response in expandable section
+    #                     with st.expander("📄 Raw API Response"):
+    #                         st.json(detail_data)
+    #                 else:
+    #                     st.error(f"❌ Failed to get place details: {result.get('error', 'Unknown error')}")
 
 
 def render_add_place_page(place_ops):
