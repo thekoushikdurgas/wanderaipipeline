@@ -560,7 +560,7 @@ class DashboardRenderer:
                 "create_type_chart"
             )
             if type_chart:
-                st.plotly_chart(type_chart, use_container_width=True)
+                st.plotly_chart(type_chart, width='stretch')
             else:
                 st.info("Unable to generate places by type chart")
         
@@ -571,7 +571,7 @@ class DashboardRenderer:
                 "create_geo_map"
             )
             if geo_map:
-                st.plotly_chart(geo_map, use_container_width=True)
+                st.plotly_chart(geo_map, width='stretch')
             else:
                 st.info("Unable to generate geographic map")
         
@@ -582,7 +582,7 @@ class DashboardRenderer:
                 "create_timeline_chart"
             )
             if timeline_chart:
-                st.plotly_chart(timeline_chart, use_container_width=True)
+                st.plotly_chart(timeline_chart, width='stretch')
         
         # Heatmap (full width)
         heatmap = safe_execute(
@@ -590,7 +590,7 @@ class DashboardRenderer:
             "create_heatmap"
         )
         if heatmap:
-            st.plotly_chart(heatmap, use_container_width=True)
+                            st.plotly_chart(heatmap, width='stretch')
     
     @staticmethod
     def _render_data_quality_section(data_quality: Dict[str, Any]) -> None:

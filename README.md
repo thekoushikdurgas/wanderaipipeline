@@ -46,6 +46,17 @@ A modern Streamlit-based CRUD (Create, Read, Update, Delete) application for man
 - **Performance Optimized**: Efficient database queries with proper indexing and vectorized operations
 - **Modern UI**: Beautiful gradients, hover effects, and smooth animations
 
+### 🗺️ OLA Maps API Testing
+
+- **Dynamic Collection Loading**: Load API endpoints directly from Postman collection JSON files
+- **File Selection Interface**: Choose from available `.postman_collection.json` files in the `OLAMAPSapi/` directory
+- **Automatic Parsing**: Intelligently parses Postman collections with variable substitution
+- **Three Testing Modes**: Category view, individual testing, and results dashboard
+- **Real-time Testing**: Live API requests with customizable parameters
+- **Performance Tracking**: Response times, success rates, and detailed metrics
+- **Credential Management**: Secure API key and bearer token configuration
+- **Comprehensive Documentation**: Detailed guides for all API categories
+
 ## Performance Improvements
 
 ### 🚀 Vectorized Operations
@@ -205,6 +216,19 @@ The application uses PostgreSQL with a `places` table containing the following c
   - **Longitude**: GPS longitude (-180 to 180)
   - **Pincode**: 6-digit postal code
 - Click "Add Place" to save
+
+### OLA Maps API Testing
+
+- Navigate to "OLA Maps API Testing" in the sidebar
+- **Select Collection**: Choose a Postman collection file from the dropdown menu
+- **Load Collection**: Click "📂 Load Collection" to parse and load the endpoints
+- **Configure Credentials**: Set your API key and bearer token in the sidebar
+- **Category Testing**: Test all endpoints in a specific API category
+- **Individual Testing**: Test specific endpoints with custom parameters
+- **Results Dashboard**: View all test results with performance metrics
+- **Real-time Responses**: See live API responses and error messages
+- **Parameter Customization**: Modify query parameters and request bodies
+- **Performance Tracking**: Monitor response times and success rates
 
 ### Edit Place
 

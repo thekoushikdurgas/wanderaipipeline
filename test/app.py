@@ -150,6 +150,8 @@ if 'sort_order' not in st.session_state:
     st.session_state.sort_order = 'ASC'
 if 'search_term' not in st.session_state:
     st.session_state.search_term = ''
+if 'selected_collection_key' not in st.session_state:
+    st.session_state.selected_collection_key = 'OLAMAPSapi.postman_collection.json'
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")

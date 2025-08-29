@@ -2,6 +2,9 @@
 streamlit>=1.28.0
 streamlit-option-menu>=0.3.6
 
+# HTTP requests for API testing
+requests>=2.31.0
+
 # Database connectivity and ORM
 psycopg2-binary>=2.9.7
 sqlalchemy>=2.0.0

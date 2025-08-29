@@ -1,11 +1,11 @@
 # Installation Commands
 pip install -r requirements.txt
+python -m streamlit run app.py
 
 # Run the main application
 streamlit run app.py
 
 # Alternative way to run the application
-python -m streamlit run app.py
 
 python -m streamlit run app_refactored.py
 

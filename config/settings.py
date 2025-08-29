@@ -231,7 +231,8 @@ class AppConstants:
         "VIEW_ALL": "View All Places",
         "ADD_NEW": "Add New Place", 
         "SEARCH": "Search Places",
-        "ANALYTICS": "Analytics Dashboard"
+        "ANALYTICS": "Analytics Dashboard",
+        "API_TESTING": "OLA Maps API Testing"
     }
     
     # Sort orders
@@ -251,7 +252,8 @@ class AppConstants:
         "SORT_ORDER": "sort_order",
         "SEARCH_TERM": "search_term",
         "EDIT_PLACE_ID": "edit_place_id",
-        "EDIT_MODE": "edit_mode"
+        "EDIT_MODE": "edit_mode",
+        "SELECTED_COLLECTION_KEY": "selected_collection_key"
     }
     
     # CSS classes
