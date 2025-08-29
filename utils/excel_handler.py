@@ -277,6 +277,30 @@ class ExcelHandler:
                         file_path=str(self.excel_file_path),
                         sync_enabled=excel_config.enable_excel_sync)
     
+    def _convert_datetimes_to_naive(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Convert timezone-aware datetimes to timezone-naive for Excel compatibility.
+        
+        Args:
+            df: DataFrame with datetime columns
+            
+        Returns:
+            pd.DataFrame: DataFrame with timezone-naive datetimes
+        """
+        datetime_columns = ['created_at', 'updated_at']
+        for col in datetime_columns:
+            if col in df.columns and df[col].dt.tz is not None:
+                df[col] = df[col].dt.tz_localize(None)
+            elif col in df.columns and df[col].dtype == 'object':
+                # Try to parse as datetime if it's an object type
+                try:
+                    df[col] = pd.to_datetime(df[col], errors='coerce')
+                    if df[col].dt.tz is not None:
+                        df[col] = df[col].dt.tz_localize(None)
+                except Exception:
+                    pass  # Keep as object if datetime parsing fails
+        return df
+    
     @handle_errors(show_user_message=False)
     @log_performance("excel_read_operation")
     def read_excel_data(self, use_cache: bool = True) -> pd.DataFrame:
@@ -321,6 +345,9 @@ class ExcelHandler:
                 },
                 parse_dates=['created_at', 'updated_at']
             )
+            
+            # Ensure datetime columns are timezone-naive for Excel compatibility
+            df = self._convert_datetimes_to_naive(df)
             
             # Ensure all required columns exist
             for col in excel_config.excel_columns:
@@ -387,6 +414,9 @@ class ExcelHandler:
             for col in datetime_columns:
                 if col in df_ordered.columns:
                     df_ordered[col] = pd.to_datetime(df_ordered[col], errors='coerce')
+            
+            # Convert timezone-aware datetimes to timezone-naive for Excel compatibility
+            df_ordered = self._convert_datetimes_to_naive(df_ordered)
             
             # Optimize data types for better performance
             if 'place_id' in df_ordered.columns:

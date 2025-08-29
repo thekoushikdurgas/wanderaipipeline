@@ -155,6 +155,30 @@ class PlacesDatabase:
         
         logger.info("PlacesDatabase initialized successfully")
     
+    def _convert_datetimes_to_naive(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Convert timezone-aware datetimes to timezone-naive for Excel compatibility.
+        
+        Args:
+            df: DataFrame with datetime columns
+            
+        Returns:
+            pd.DataFrame: DataFrame with timezone-naive datetimes
+        """
+        datetime_columns = ['created_at', 'updated_at']
+        for col in datetime_columns:
+            if col in df.columns and df[col].dt.tz is not None:
+                df[col] = df[col].dt.tz_localize(None)
+            elif col in df.columns and df[col].dtype == 'object':
+                # Try to parse as datetime if it's an object type
+                try:
+                    df[col] = pd.to_datetime(df[col], errors='coerce')
+                    if df[col].dt.tz is not None:
+                        df[col] = df[col].dt.tz_localize(None)
+                except Exception:
+                    pass  # Keep as object if datetime parsing fails
+        return df
+    
     @handle_database_errors
     def get_connection(self):
         """
@@ -347,6 +371,9 @@ class PlacesDatabase:
                 }
             )
             
+            # Convert timezone-aware datetimes to timezone-naive for Excel compatibility
+            df = self._convert_datetimes_to_naive(df)
+            
             logger.info("Successfully retrieved all places from database", 
                        record_count=len(df))
             
@@ -490,6 +517,9 @@ class PlacesDatabase:
                 }
             )
             
+            # Convert timezone-aware datetimes to timezone-naive for Excel compatibility
+            df = self._convert_datetimes_to_naive(df)
+            
             logger.info("Successfully retrieved paginated places",
                        returned_records=len(df), 
                        total_count=total_count,
@@ -595,6 +625,9 @@ class PlacesDatabase:
                     'pincode': 'string'
                 }
             )
+            
+            # Convert timezone-aware datetimes to timezone-naive for Excel compatibility
+            df = self._convert_datetimes_to_naive(df)
             
             logger.info("Successfully retrieved places by type",
                        place_type=place_type, returned_records=len(df), 
@@ -858,6 +891,12 @@ class PlacesDatabase:
                 }
             )
             
+            # Convert timezone-aware datetimes to timezone-naive for Excel compatibility
+            datetime_columns = ['created_at', 'updated_at']
+            for col in datetime_columns:
+                if col in df.columns and df[col].dt.tz is not None:
+                    df[col] = df[col].dt.tz_localize(None)
+            
             if not df.empty:
                 return df.iloc[0].to_dict()
             return None
@@ -891,6 +930,10 @@ class PlacesDatabase:
                     'pincode': 'string'
                 }
             )
+            
+            # Convert timezone-aware datetimes to timezone-naive for Excel compatibility
+            df = self._convert_datetimes_to_naive(df)
+            
             return df
         except Exception as e:
             print(f"Error searching places: {e}")
@@ -917,6 +960,10 @@ class PlacesDatabase:
                     'pincode': 'string'
                 }
             )
+            
+            # Convert timezone-aware datetimes to timezone-naive for Excel compatibility
+            df = self._convert_datetimes_to_naive(df)
+            
             return df
         except Exception as e:
             print(f"Error getting places by type: {e}")

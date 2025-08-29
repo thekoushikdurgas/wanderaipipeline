@@ -28,7 +28,7 @@ A sophisticated, production-ready Streamlit application for managing geographica
 
 ## 📁 Enhanced File Structure
 
-```
+```txt
 travel_pipeline/
 ├── 📁 config/                     # Configuration management
 │   └── settings.py                # Centralized configuration settings

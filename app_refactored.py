@@ -186,6 +186,19 @@ class DatabaseManager:
                 return None
             
             db = PlacesDatabase()
+            
+            # Verify the database instance is properly initialized
+            if not hasattr(db, 'engine'):
+                logger.error("Database instance missing engine attribute")
+                st.error("Database initialization incomplete - missing engine")
+                return None
+            
+            # Test the connection to ensure it's working
+            if not db.test_connection():
+                logger.error("Database connection test failed after initialization")
+                st.error("Database connection test failed")
+                return None
+            
             logger.info("Database connection established successfully")
             return db
             
@@ -207,6 +220,15 @@ class DatabaseManager:
             logger.error("Unexpected error during database initialization", error=str(e))
             st.error(f"Unexpected database error: {e}")
             return None
+    
+    @staticmethod
+    def clear_cache():
+        """Clear the cached database instance."""
+        try:
+            st.cache_resource.clear()
+            logger.info("Database cache cleared")
+        except Exception as e:
+            logger.warning("Failed to clear database cache", error=str(e))
 
 
 class PlaceOperations:
@@ -502,6 +524,27 @@ def main():
     # Get database instance
     db = DatabaseManager.get_database_instance()
     if not db:
+        st.error("""
+        ## Database Connection Failed
+        
+        Unable to establish database connection. Please check your configuration and try again.
+        
+        **Troubleshooting:**
+        1. Verify your `.env` file contains correct database credentials
+        2. Check if the database server is accessible
+        3. Try refreshing the page
+        """)
+        st.stop()
+    
+    # Verify database instance has required attributes
+    if not hasattr(db, 'engine'):
+        st.error("""
+        ## Database Initialization Error
+        
+        Database instance is missing required attributes. This may be due to a caching issue.
+        
+        **Solution:** Please refresh the page to reinitialize the database connection.
+        """)
         st.stop()
     
     # Initialize place operations

@@ -340,12 +340,14 @@ travel_pipeline/
 ## Performance Benchmarks
 
 ### Before Optimization
+
 - **Search Response**: 2-3 seconds for 1000 records
 - **Memory Usage**: 150MB for 1000 records
 - **Data Processing**: 5-10 seconds for analytics
 - **Excel Operations**: 3-5 seconds for read/write
 
 ### After Optimization
+
 - **Search Response**: 0.1-0.3 seconds for 1000 records (10x faster)
 - **Memory Usage**: 45MB for 1000 records (70% reduction)
 - **Data Processing**: 0.5-1 second for analytics (10x faster)
