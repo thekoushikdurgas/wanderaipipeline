@@ -1,0 +1,252 @@
+{
+	"info": {
+		"_postman_id": "59126647-bd86-444f-b417-d37bb64dcefd",
+		"name": "Roads API",
+		"description": "Postman collection for OLA Maps Roads API (SnapToRoad, NearestRoads, SpeedLimits).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-59126647-bd86-444f-b417-d37bb64dcefd?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "1) SnapToRoad - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174000"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174001"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/snapToRoad?points={{snap_points}}&enhancePath={{enhance_path}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"snapToRoad"
+					],
+					"query": [
+						{
+							"key": "points",
+							"value": "{{snap_points}}"
+						},
+						{
+							"key": "enhancePath",
+							"value": "{{enhance_path}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Snaps a list of geographic coordinates to the nearest road segments."
+			},
+			"response": []
+		},
+		{
+			"name": "2) NearestRoads - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174002"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174003"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/nearestRoads?points={{nearest_points}}&radius={{nearest_radius}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"nearestRoads"
+					],
+					"query": [
+						{
+							"key": "points",
+							"value": "{{nearest_points}}"
+						},
+						{
+							"key": "radius",
+							"value": "{{nearest_radius}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Returns the nearest road segments for up to 100 input coordinates."
+			},
+			"response": []
+		},
+		{
+			"name": "3) SpeedLimits - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174004"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174005"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/speedLimits?points={{speedlimit_points}}&snapStrategy={{snap_strategy}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"speedLimits"
+					],
+					"query": [
+						{
+							"key": "points",
+							"value": "{{speedlimit_points}}"
+						},
+						{
+							"key": "snapStrategy",
+							"value": "{{snap_strategy}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Snaps given points to the road and returns speed limits for those segments."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "api.olamaps.io"
+		},
+		{
+			"key": "api_key",
+			"value": "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
+		},
+		{
+			"key": "bearer_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMRndtX0U2akoyWG5yYkpkS1d1VXl2UllUN25lZ0FibDhWLXVSTno3UzZVIn0.eyJleHAiOjE3MzcyMDg1MjIsImlhdCI6MTczNzIwNDkyMiwianRpIjoiMjljYzNmODktZWZlZC00MTMzLWJkNGItZjM2NGNmMTFlOGJiIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50Lm9sYW1hcHMuaW8vcmVhbG1zL29sYW1hcHMiLCJzdWIiOiI1MWFkMmZjMS02NTZjLTQ5OTAtOWU0NS0xZjRlMzZiOWIzZTUiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJkNGNkNTVmYS1hOGQ3LTQyODctYjY1ZS01MDdkYzQ1NzI3YjEiLCJzY29wZSI6Im9wZW5pZCIsImNsaWVudEhvc3QiOm51bGwsIm9yZyI6Ik9SRy1iYjc0Mzc3NC1lNGIxLTQxMzEtYmZiMy02NDRlYWNmNDA2ZTIiLCJvcmcxIjp7fSwicmVhbG0iOiJvbGFtYXBzIiwiY2xpZW50QWRkcmVzcyI6bnVsbCwiY2xpZW50X2lkIjoiZDRjZDU1ZmEtYThkNy00Mjg3LWI2NWUtNTA3ZGM0NTcyN2IxIiwic2JuIjoiU0JOLTBjOTc5ZWVmLWQ0MTctNDcwNi1iYTc1LTQ4ZDk3NDU2MGRjMyJ9.vEGGTqdC7lqN7MRtD6W3bcwUKPSLt74eFlr4knatBBxxYCmTgpATlPxwyoPmESA2gy_KyMa-XikiZXB2suaw4A0NbDSNfWdg-XWnYG1fqVWGz1UDwpQjArsT1xxCBl0ioJB4XT9iNw2Ob-QmLJopcX5WmuE6nTZPOxxds0nX3nCzy1RFT_6mZ8Z74BT-orTRiH-48JTSXEaw1aJx1KHnwztlWcxRqzdXYgiBdmB2Nfl7IRxqH9NejD0Ujx8imvcOC1j1-Q2_pxc3yx9-6S8iIdo9N4sYsUnbz_nYHkQrKYG4-gHE3jblZWV9bQOo8p1sgHEfonEhEQSEu44M3zB_3g"
+		},
+		{
+			"key": "snap_points",
+			"value": "12.99927894246456,77.67323803525812|12.992086564113583,77.65899014102202"
+		},
+		{
+			"key": "enhance_path",
+			"value": "false"
+		},
+		{
+			"key": "nearest_points",
+			"value": "12.99927894246456,77.67323803525812|12.992086564113583,77.65899014102202"
+		},
+		{
+			"key": "nearest_radius",
+			"value": "500"
+		},
+		{
+			"key": "speedlimit_points",
+			"value": "13.0630227,77.5930842|13.063479498221085,77.59321523175956"
+		},
+		{
+			"key": "snap_strategy",
+			"value": "snaptoroad"
+		}
+	]
+}

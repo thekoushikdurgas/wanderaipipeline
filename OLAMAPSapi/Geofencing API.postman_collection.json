@@ -1,0 +1,657 @@
+{
+	"info": {
+		"_postman_id": "3af57f6f-df1b-4abf-b233-590dbb0578c3",
+		"name": "Geofencing API",
+		"description": "Postman collection for OLA Maps Geofencing APIs.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-3af57f6f-df1b-4abf-b233-590dbb0578c3?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "Geofencing APIs",
+			"item": [
+				{
+					"name": "1. Geofence Create API",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174100"
+							},
+							{
+								"key": "X-Correlation-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174101"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "origin",
+								"value": "https://maps.olakrutrim.com",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ola Koramangala Warehouse\",\n  \"type\": \"circle\",\n  \"radius\": 100,\n  \"coordinates\": [\n    [\n      12.931471680858923,\n      77.61520605507842\n    ]\n  ],\n  \"status\": \"active\",\n  \"projectId\": \"abc-xyz-123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/places/v1/geofence?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"places",
+								"v1",
+								"geofence"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						},
+						"description": "Creates a new geofence with the details provided in the payload."
+					},
+					"response": [
+						{
+							"name": "201 Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofence?api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofence"
+									],
+									"query": [
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"geofenceId\": \"ModKbJQBn9uUzMfrDKkI\",\n  \"status\": \"created\",\n  \"message\": \"Geofence successfully created\"\n}"
+						}
+					]
+				},
+				{
+					"name": "2. Geofence Update API",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174102"
+							},
+							{
+								"key": "X-Correlation-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174103"
+							},
+							{
+								"key": "origin",
+								"value": "https://maps.olakrutrim.com",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ola Koramangala Warehouse\",\n  \"type\": \"polygon\",\n  \"coordinates\": [\n    [\n      12.9314,\n      77.6152\n    ],\n    [\n      12.93168,\n      77.616761\n    ],\n    [\n      12.93096,\n      77.616708\n    ]\n  ],\n  \"status\": \"active\",\n  \"projectId\": \"abc-xyz-123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/places/v1/geofence/{{geofenceId}}?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"places",
+								"v1",
+								"geofence",
+								"{{geofenceId}}"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						},
+						"description": "Updates the details of an existing geofence through its ID."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofence/{{geofenceId}}?api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofence",
+										"{{geofenceId}}"
+									],
+									"query": [
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"geofenceId\": \"ModKbJQBn9uUzMfrDKkI\",\n  \"status\": \"updated\",\n  \"message\": \"Geofence successfully updated\"\n}"
+						}
+					]
+				},
+				{
+					"name": "3. Geofence Get API",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174104"
+							},
+							{
+								"key": "X-Correlation-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174105"
+							},
+							{
+								"key": "origin",
+								"value": "https://maps.olakrutrim.com",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/places/v1/geofence/{{geofenceId}}?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"places",
+								"v1",
+								"geofence",
+								"{{geofenceId}}"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						},
+						"description": "Retrieves an existing geofence through its ID."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofence/{{geofenceId}}?api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofence",
+										"{{geofenceId}}"
+									],
+									"query": [
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"geofenceId\": \"ModKbJQBn9uUzMfrDKkI\",\n  \"name\": \"Ola Koramangala Warehouse\",\n  \"type\": \"polygon\",\n  \"coordinates\": [\n    [\n      12.9314,\n      77.6152\n    ],\n    [\n      12.93168,\n      77.616761\n    ],\n    [\n      12.93096,\n      77.616708\n    ]\n  ],\n  \"status\": \"active\",\n  \"projectId\": \"abc-xyz-123\"\n}"
+						}
+					]
+				},
+				{
+					"name": "4. Geofence Delete API",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174106"
+							},
+							{
+								"key": "X-Correlation-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174107"
+							},
+							{
+								"key": "origin",
+								"value": "https://maps.olakrutrim.com",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/places/v1/geofence/{{geofenceId}}?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"places",
+								"v1",
+								"geofence",
+								"{{geofenceId}}"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						},
+						"description": "Deletes an existing geofence based on its ID."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofence/{{geofenceId}}?api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofence",
+										"{{geofenceId}}"
+									],
+									"query": [
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"geofenceId\": \"ModKbJQBn9uUzMfrDKkI\",\n  \"status\": \"deleted\",\n  \"message\": \"Geofence successfully deleted\"\n}"
+						},
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofence/{{geofenceId}}?api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofence",
+										"{{geofenceId}}"
+									],
+									"query": [
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Geofence with ID ModKbJQBn9uUzMfrDKkI not found\"\n}"
+						}
+					]
+				},
+				{
+					"name": "5. Geofence List API",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174108"
+							},
+							{
+								"key": "X-Correlation-Id",
+								"value": "123e4567-e89b-12d3-a456-426614174109"
+							},
+							{
+								"key": "origin",
+								"value": "https://maps.olakrutrim.com",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/places/v1/geofences?page=2&size=2&projectId=abc-xyz-123&api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"places",
+								"v1",
+								"geofences"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "projectId",
+									"value": "abc-xyz-123"
+								},
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						},
+						"description": "Retrieves a paginated list of geofences under a specific project ID."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofences?page=2&size=2&projectId=abc-xyz-123&api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofences"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										},
+										{
+											"key": "size",
+											"value": "2"
+										},
+										{
+											"key": "projectId",
+											"value": "abc-xyz-123"
+										},
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"page\": \"2\",\n  \"size\": \"2\",\n  \"total\": \"193\",\n  \"geofences\": [\n    {\n      \"geofenceId\": \"j4D3uZMBn9uUzMfrowtz\",\n      \"name\": \"Ola Koramangala Warehouse\",\n      \"type\": \"circle\",\n      \"radius\": 100,\n      \"coordinates\": [\n        [\n          12.931471680858923,\n          77.61520605507842\n        ]\n      ],\n      \"status\": \"active\",\n      \"projectId\": \"abc-xyz-123\"\n    },\n    {\n      \"geofenceId\": \"voHs1ZMBn9uUzMfrYz3e\",\n      \"name\": \"Ola Koramangala Warehouse\",\n      \"type\": \"circle\",\n      \"radius\": 100,\n      \"coordinates\": [\n        [\n          12.931471680858923,\n          77.61520605507842\n        ]\n      ],\n      \"status\": \"active\",\n      \"projectId\": \"abc-xyz-123\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "6. Geofence Status API",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							},
+							{
+								"key": "X-Request-Id",
+								"value": "123e4567-e89b-12d3-a456-42661417410A"
+							},
+							{
+								"key": "X-Correlation-Id",
+								"value": "123e4567-e89b-12d3-a456-42661417410B"
+							},
+							{
+								"key": "origin",
+								"value": "https://maps.olakrutrim.com",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/places/v1/geofence/status?geofenceId={{geofenceId}}&coordinates=12.993103152916301,77.54332622119354&api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"places",
+								"v1",
+								"geofence",
+								"status"
+							],
+							"query": [
+								{
+									"key": "geofenceId",
+									"value": "{{geofenceId}}"
+								},
+								{
+									"key": "coordinates",
+									"value": "12.993103152916301,77.54332622119354"
+								},
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						},
+						"description": "Checks if an entity is inside or outside a given geofence."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofence/status?geofenceId={{geofenceId}}&coordinates=12.993103152916301,77.54332622119354&api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofence",
+										"status"
+									],
+									"query": [
+										{
+											"key": "geofenceId",
+											"value": "{{geofenceId}}"
+										},
+										{
+											"key": "coordinates",
+											"value": "12.993103152916301,77.54332622119354"
+										},
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"geofenceId\": \"ModKbJQBn9uUzMfrDKkI\",\n  \"isInside\": true,\n  \"message\": \"Entity is inside the geofence\"\n}"
+						},
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/places/v1/geofence/status?geofenceId={{geofenceId}}&coordinates=12.993103152916301,77.54332622119354&api_key={{api_key}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"places",
+										"v1",
+										"geofence",
+										"status"
+									],
+									"query": [
+										{
+											"key": "geofenceId",
+											"value": "{{geofenceId}}"
+										},
+										{
+											"key": "coordinates",
+											"value": "12.993103152916301,77.54332622119354"
+										},
+										{
+											"key": "api_key",
+											"value": "{{api_key}}"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Failed to Get Status of Entity within id ModKbJQBn9uUzMfrDKkI with error Not Found\"\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api.olamaps.io"
+		},
+		{
+			"key": "api_key",
+			"value": "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
+		},
+		{
+			"key": "bearer_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMRndtX0U2akoyWG5yYkpkS1d1VXl2UllUN25lZ0FibDhWLXVSTno3UzZVIn0.eyJleHAiOjE3MzcyNDcwMDcsImlhdCI6MTczNzI0MzQwNywianRpIjoiYzdjMTFiNjUtOTQ5YS00MTYxLTkzZTQtOWRjN2I1NzFkMmI2IiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50Lm9sYW1hcHMuaW8vcmVhbG1zL29sYW1hcHMiLCJzdWIiOiI1MWFkMmZjMS02NTZjLTQ5OTAtOWU0NS0xZjRlMzZiOWIzZTUiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJkNGNkNTVmYS1hOGQ3LTQyODctYjY1ZS01MDdkYzQ1NzI3YjEiLCJzY29wZSI6Im9wZW5pZCIsImNsaWVudEhvc3QiOm51bGwsIm9yZyI6Ik9SRy1iYjc0Mzc3NC1lNGIxLTQxMzEtYmZiMy02NDRlYWNmNDA2ZTIiLCJvcmcxIjp7fSwicmVhbG0iOiJvbGFtYXBzIiwiY2xpZW50QWRkcmVzcyI6bnVsbCwiY2xpZW50X2lkIjoiZDRjZDU1ZmEtYThkNy00Mjg3LWI2NWUtNTA3ZGM0NTcyN2IxIiwic2JuIjoiU0JOLTBjOTc5ZWVmLWQ0MTctNDcwNi1iYTc1LTQ4ZDk3NDU2MGRjMyJ9.UoEccQypLSd6kIQ-TGkpm-pCYZTuVwwTFZOYFFOiem6sdI-Ht-QoiP2l-g-1xWNL2M4oIy8g2XFonRgzf_5tV2KBSytOS7EK2W5TbSwpNe87YfptM2qCIwItwT8erTjk5JyLn2HufLEhaI9rH8XYK51JGnyQp5A4yGmQn6fOWaHlx3LjeRSVmwQoZTmIY5bP34yPbMrsRlRhgM0wqVoiKeev4dSxaozi_lPElY2m9kjx2ZXe8-dJcJKOdeA5vCwZLi1t0ahH_0maarGqNkAFZTB73EEHGCNGjiErf4rYVXd_mmbyxw_mj1cOrpOwo5ZNspMdDdh2kHf8Ch8eFct6NQ"
+		},
+		{
+			"key": "geofenceId",
+			"value": "ModKbJQBn9uUzMfrDKkI"
+		}
+	]
+}

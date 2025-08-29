@@ -1,0 +1,548 @@
+{
+	"info": {
+		"_postman_id": "a75f9e8f-be11-4b2a-8cfa-2311b3e3caf5",
+		"name": "Routing APIs",
+		"description": "Postman collection for OLA Maps Routing APIs (Directions, Distance Matrix, Route Optimizer, Fleet Planner).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-a75f9e8f-be11-4b2a-8cfa-2311b3e3caf5?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "1) Directions - POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174000"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174001"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/directions?origin={{origin}}&destination={{destination}}&mode={{mode}}&alternatives=false&steps={{steps}}&overview={{overview}}&language={{language}}&traffic_metadata={{traffic_metadata}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"directions"
+					],
+					"query": [
+						{
+							"key": "origin",
+							"value": "{{origin}}"
+						},
+						{
+							"key": "destination",
+							"value": "{{destination}}"
+						},
+						{
+							"key": "mode",
+							"value": "{{mode}}"
+						},
+						{
+							"key": "alternatives",
+							"value": "false"
+						},
+						{
+							"key": "steps",
+							"value": "{{steps}}"
+						},
+						{
+							"key": "overview",
+							"value": "{{overview}}"
+						},
+						{
+							"key": "language",
+							"value": "{{language}}"
+						},
+						{
+							"key": "traffic_metadata",
+							"value": "{{traffic_metadata}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Provides routable path (directions) between two or more points."
+			},
+			"response": []
+		},
+		{
+			"name": "2) Directions Basic - POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174002"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174003"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/directions/basic?origin={{origin}}&destination={{destination}}&alternatives=false&steps={{steps}}&overview={{overview}}&language={{language}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"directions",
+						"basic"
+					],
+					"query": [
+						{
+							"key": "origin",
+							"value": "{{origin}}"
+						},
+						{
+							"key": "destination",
+							"value": "{{destination}}"
+						},
+						{
+							"key": "alternatives",
+							"value": "false"
+						},
+						{
+							"key": "steps",
+							"value": "{{steps}}"
+						},
+						{
+							"key": "overview",
+							"value": "{{overview}}"
+						},
+						{
+							"key": "language",
+							"value": "{{language}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Provides a basic routable path between two or more points (less metadata)."
+			},
+			"response": []
+		},
+		{
+			"name": "3) Distance Matrix - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174004"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174005"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/distanceMatrix?origins={{origins}}&destinations={{destinations}}&mode={{mode}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"distanceMatrix"
+					],
+					"query": [
+						{
+							"key": "origins",
+							"value": "{{origins}}"
+						},
+						{
+							"key": "destinations",
+							"value": "{{destinations}}"
+						},
+						{
+							"key": "mode",
+							"value": "{{mode}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Provides distance and ETA between multiple origins and destinations."
+			},
+			"response": []
+		},
+		{
+			"name": "4) Distance Matrix Basic - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174006"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174007"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/distanceMatrix/basic?origins={{origins}}&destinations={{destinations}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"distanceMatrix",
+						"basic"
+					],
+					"query": [
+						{
+							"key": "origins",
+							"value": "{{origins}}"
+						},
+						{
+							"key": "destinations",
+							"value": "{{destinations}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Provides distance and ETA between multiple origins and destinations (basic version)."
+			},
+			"response": []
+		},
+		{
+			"name": "5) Route Optimizer - POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174008"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174009"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/routeOptimizer?locations={{locations_ro}}&source={{source}}&destination={{destination_setting}}&round_trip={{round_trip}}&mode={{mode}}&steps={{steps}}&overview={{overview}}&language={{language}}&traffic_metadata={{traffic_metadata}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"routeOptimizer"
+					],
+					"query": [
+						{
+							"key": "locations",
+							"value": "{{locations_ro}}"
+						},
+						{
+							"key": "source",
+							"value": "{{source}}"
+						},
+						{
+							"key": "destination",
+							"value": "{{destination_setting}}"
+						},
+						{
+							"key": "round_trip",
+							"value": "{{round_trip}}"
+						},
+						{
+							"key": "mode",
+							"value": "{{mode}}"
+						},
+						{
+							"key": "steps",
+							"value": "{{steps}}"
+						},
+						{
+							"key": "overview",
+							"value": "{{overview}}"
+						},
+						{
+							"key": "language",
+							"value": "{{language}}"
+						},
+						{
+							"key": "traffic_metadata",
+							"value": "{{traffic_metadata}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Provides an optimized route among multiple waypoints, optionally reordering them for the best route based on ETA."
+			},
+			"response": []
+		},
+		{
+			"name": "6) Fleet Planner - POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-42661417400A"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-42661417400B"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "input",
+							"value": "",
+							"type": "file"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/routing/v1/fleetPlanner?strategy={{strategy}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"routing",
+						"v1",
+						"fleetPlanner"
+					],
+					"query": [
+						{
+							"key": "strategy",
+							"value": "{{strategy}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Provides solutions for allocating packages and designing routes among a fleet of vehicles. Upload a JSON file in `multipart/form-data` (key named `input`)."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "api.olamaps.io"
+		},
+		{
+			"key": "api_key",
+			"value": "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
+		},
+		{
+			"key": "bearer_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMRndtX0U2akoyWG5yYkpkS1d1VXl2UllUN25lZ0FibDhWLXVSTno3UzZVIn0.eyJleHAiOjE3MzcyNTYxMjEsImlhdCI6MTczNzI1MjUyMSwianRpIjoiMmI5ZGE2YjItZWMzYS00NDQ1LTk2OWQtOWRiMThhZjQxNzBmIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50Lm9sYW1hcHMuaW8vcmVhbG1zL29sYW1hcHMiLCJzdWIiOiI1MWFkMmZjMS02NTZjLTQ5OTAtOWU0NS0xZjRlMzZiOWIzZTUiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJkNGNkNTVmYS1hOGQ3LTQyODctYjY1ZS01MDdkYzQ1NzI3YjEiLCJzY29wZSI6Im9wZW5pZCIsImNsaWVudEhvc3QiOm51bGwsIm9yZyI6Ik9SRy1iYjc0Mzc3NC1lNGIxLTQxMzEtYmZiMy02NDRlYWNmNDA2ZTIiLCJvcmcxIjp7fSwicmVhbG0iOiJvbGFtYXBzIiwiY2xpZW50QWRkcmVzcyI6bnVsbCwiY2xpZW50X2lkIjoiZDRjZDU1ZmEtYThkNy00Mjg3LWI2NWUtNTA3ZGM0NTcyN2IxIiwic2JuIjoiU0JOLTBjOTc5ZWVmLWQ0MTctNDcwNi1iYTc1LTQ4ZDk3NDU2MGRjMyJ9.lSgwNieONHfIqaTH4rp54tCbf9pB5f1MmtSZNNqqg8lG-u4gPqqljjY7U3kkupNUT8Mve0LYnYtfI9W_Ug6dFu41OWFcePJYG2qtwSIR2rqM_wGbxd1mPt75C_xuXjGF5NhWGHwEpOQ9wp56mtnMBFibrT4cFRaKUt2aqdvT7gTE3qhtHWM4l8dWQ17gEmrGAen-uPEAgbrGiYlvExiUDzdWfJ8JvVXNa6s0jxZFlOWhCoO4z5qibgrgak68h4Z-f6ovg1cGQbrsMZP5v_Lpgk8rmY_J4d4say4g-t87UIpkMdR8pc2R5h2G6L7M915fkByq-RU6kSGywqx68gWHUg"
+		},
+		{
+			"key": "origin",
+			"value": "12.993103152916301,77.54332622119354"
+		},
+		{
+			"key": "destination",
+			"value": "12.972006793201695,77.5800850011884"
+		},
+		{
+			"key": "mode",
+			"value": "driving"
+		},
+		{
+			"key": "overview",
+			"value": "full"
+		},
+		{
+			"key": "steps",
+			"value": "true"
+		},
+		{
+			"key": "traffic_metadata",
+			"value": "false"
+		},
+		{
+			"key": "language",
+			"value": "en"
+		},
+		{
+			"key": "origins",
+			"value": "12.993103152916301,77.54332622119354"
+		},
+		{
+			"key": "destinations",
+			"value": "12.972006793201695,77.5800850011884"
+		},
+		{
+			"key": "locations_ro",
+			"value": "12.938399,77.632873|12.938041,77.628285"
+		},
+		{
+			"key": "source",
+			"value": "first"
+		},
+		{
+			"key": "destination_setting",
+			"value": "last"
+		},
+		{
+			"key": "round_trip",
+			"value": "false"
+		},
+		{
+			"key": "strategy",
+			"value": "optimal"
+		}
+	]
+}

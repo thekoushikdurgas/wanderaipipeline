@@ -1,0 +1,255 @@
+{
+	"info": {
+		"_postman_id": "610824d0-7d1e-42e0-bdc9-f989e5a89b27",
+		"name": "Tiles API",
+		"description": "Postman collection for OLA Maps Tiles API (Vector, Static, and 3D Tiles).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-610824d0-7d1e-42e0-bdc9-f989e5a89b27?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "Vector Tiles",
+			"item": [
+				{
+					"name": "Get Vector Styles (list)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tiles/vector/v1/styles.json?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tiles",
+								"vector",
+								"v1",
+								"styles.json"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Detail of a Vector Style",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tiles/vector/v1/styles/{{styleName}}/style.json?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tiles",
+								"vector",
+								"v1",
+								"styles",
+								"{{styleName}}",
+								"style.json"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Static Maps",
+			"item": [
+				{
+					"name": "Get Static Map (Center-based)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "image/*"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tiles/v1/styles/{{styleName}}/static/{{lon}},{{lat}},{{zoom}}/{{width}}x{{height}}.{{format}}?marker={{markerParam}}&path={{pathParam}}&api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tiles",
+								"v1",
+								"styles",
+								"{{styleName}}",
+								"static",
+								"{{lon}},{{lat}},{{zoom}}",
+								"{{width}}x{{height}}.{{format}}"
+							],
+							"query": [
+								{
+									"key": "marker",
+									"value": "{{markerParam}}"
+								},
+								{
+									"key": "path",
+									"value": "{{pathParam}}"
+								},
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Static Map (BBox-based)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "image/*"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tiles/v1/styles/{{styleName}}/static/{{bbox}}/{{width}}x{{height}}.{{format}}?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tiles",
+								"v1",
+								"styles",
+								"{{styleName}}",
+								"static",
+								"{{bbox}}",
+								"{{width}}x{{height}}.{{format}}"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3D Tiles",
+			"item": [
+				{
+					"name": "Get 3D Tiles Tileset.json",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tiles/vector/v1/3dtiles/tileset.json?api_key={{api_key}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tiles",
+								"vector",
+								"v1",
+								"3dtiles",
+								"tileset.json"
+							],
+							"query": [
+								{
+									"key": "api_key",
+									"value": "{{api_key}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api.olamaps.io"
+		},
+		{
+			"key": "api_key",
+			"value": "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
+		},
+		{
+			"key": "bearer_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMRndtX0U2akoyWG5yYkpkS1d1VXl2UllUN25lZ0FibDhWLXVSTno3UzZVIn0.eyJleHAiOjE3MzcyNjgwMTgsImlhdCI6MTczNzI2NDQxOCwianRpIjoiZjg2MDVmYmYtMDUxMi00N2RkLTk5ZjItMGQ2YTJmNThkMjFhIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50Lm9sYW1hcHMuaW8vcmVhbG1zL29sYW1hcHMiLCJzdWIiOiI1MWFkMmZjMS02NTZjLTQ5OTAtOWU0NS0xZjRlMzZiOWIzZTUiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJkNGNkNTVmYS1hOGQ3LTQyODctYjY1ZS01MDdkYzQ1NzI3YjEiLCJzY29wZSI6Im9wZW5pZCIsImNsaWVudEhvc3QiOm51bGwsIm9yZyI6Ik9SRy1iYjc0Mzc3NC1lNGIxLTQxMzEtYmZiMy02NDRlYWNmNDA2ZTIiLCJvcmcxIjp7fSwicmVhbG0iOiJvbGFtYXBzIiwiY2xpZW50QWRkcmVzcyI6bnVsbCwiY2xpZW50X2lkIjoiZDRjZDU1ZmEtYThkNy00Mjg3LWI2NWUtNTA3ZGM0NTcyN2IxIiwic2JuIjoiU0JOLTBjOTc5ZWVmLWQ0MTctNDcwNi1iYTc1LTQ4ZDk3NDU2MGRjMyJ9.1Zj4MW-SSwqGOlqQyh0tyYYT8wlC2e_20n9OSnMjlohXUDkxjwxAHYllRoKEen8Dr5qWPQqwdbOj05ZsPyumA_mnHPCm6_F3b1B-z1w-WdbyzeGlMhgaQnxzV9LFRXLmk-Zo0v9NaDZaI1DtKEMIk81Nh8XH8WiXZeZR0niW8TGbzHC5OhADIO3nxcDRjgUtOd1YzU-koTCmNmdSdCY7PtYtgy1u2X18YPqhLaCMwa4SPfZtgbQIRCbfyhH9jzTNgiwJw6MaBrR-u8v7oAvO66DYdkbhEM5swAc5FwZCmcgTlHaBHvm25nsyVowdLilNMup2CUexJfJNIRIGx7peWA"
+		}
+	]
+}

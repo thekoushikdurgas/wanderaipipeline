@@ -1,0 +1,297 @@
+{
+	"info": {
+		"_postman_id": "e5c7ec67-f42f-415e-a674-544a905d68e9",
+		"name": "Elevation API Copy",
+		"description": "Postman collection for OLA Maps Elevation API (single and multi locations).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-e5c7ec67-f42f-415e-a674-544a905d68e9?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "Single Elevation - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "{{request_id}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "{{correlation_id}}",
+						"type": "text"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.olamaps.io/places/v1/elevation?location={{latitude}},{{longitude}}&api_key={{api_key}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"olamaps",
+						"io"
+					],
+					"path": [
+						"places",
+						"v1",
+						"elevation"
+					],
+					"query": [
+						{
+							"key": "location",
+							"value": "{{latitude}},{{longitude}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Retrieves the elevation for a single location specified by latitude/longitude."
+			},
+			"response": []
+		},
+		{
+			"name": "Multi Elevation - POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "{{request_id}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "{{correlation_id}}",
+						"type": "text"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"locations\": [\n    \"{{latitude_1}},{{longitude_1}}\",\n    \"{{latitude_2}},{{longitude_2}}\"\n  ]\n}"
+				},
+				"url": {
+					"raw": "https://api.olamaps.io/places/v1/elevation?api_key={{api_key}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"olamaps",
+						"io"
+					],
+					"path": [
+						"places",
+						"v1",
+						"elevation"
+					],
+					"query": [
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Retrieves the elevation for multiple locations (up to 25)."
+			},
+			"response": []
+		},
+		{
+			"name": "Single Elevation - GET me",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "{{request_id}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "{{correlation_id}}",
+						"type": "text"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/elevation/elevation?location={{latitude}},{{longitude}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"elevation",
+						"elevation"
+					],
+					"query": [
+						{
+							"key": "location",
+							"value": "{{latitude}},{{longitude}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Multi Elevation - POST me",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "{{request_id}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "{{correlation_id}}",
+						"type": "text"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"locations\": [\r\n    \"{{latitude_1}},{{longitude_1}}\",\r\n    \"{{latitude_2}},{{longitude_2}}\"\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/elevation/elevation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"elevation",
+						"elevation"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "api_key",
+			"value": "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
+		},
+		{
+			"key": "bearer_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMRndtX0U2akoyWG5yYkpkS1d1VXl2UllUN25lZ0FibDhWLXVSTno3UzZVIn0.eyJleHAiOjE3MzcyMTIzMjgsImlhdCI6MTczNzIwODcyOCwianRpIjoiN2JhNThkZGMtODIxNS00YTFmLWJkYzYtYTE4NjgwNTQ4ZDY3IiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50Lm9sYW1hcHMuaW8vcmVhbG1zL29sYW1hcHMiLCJzdWIiOiI1MWFkMmZjMS02NTZjLTQ5OTAtOWU0NS0xZjRlMzZiOWIzZTUiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJkNGNkNTVmYS1hOGQ3LTQyODctYjY1ZS01MDdkYzQ1NzI3YjEiLCJzY29wZSI6Im9wZW5pZCIsImNsaWVudEhvc3QiOm51bGwsIm9yZyI6Ik9SRy1iYjc0Mzc3NC1lNGIxLTQxMzEtYmZiMy02NDRlYWNmNDA2ZTIiLCJvcmcxIjp7fSwicmVhbG0iOiJvbGFtYXBzIiwiY2xpZW50QWRkcmVzcyI6bnVsbCwiY2xpZW50X2lkIjoiZDRjZDU1ZmEtYThkNy00Mjg3LWI2NWUtNTA3ZGM0NTcyN2IxIiwic2JuIjoiU0JOLTBjOTc5ZWVmLWQ0MTctNDcwNi1iYTc1LTQ4ZDk3NDU2MGRjMyJ9.e6QxfR9m5qKL3nv7CaguBywRonM0x1sbHFRc4zr5fz1mO2UcwY1D4iuBt5oe15X-rtaWdjDrZSIpkpp17tLv2BeOXEJ4lr420MFAPA4Rx4-taRMruvv6AXZpnNMvL9EAX4ZP-3gNNMb2S3P1S5rrffypFG1EFBGBvY0nzG4Ym-PGh1xq5-zHgKuzyP-vYPEHB94sr3b0MYaf2MXYiijQ6am1EE9aOtNOExqotuIS27CBTatZBUPQ2mWEi1Bs0HaEDqEnjVhFMxF4A6T_322w3BxHUIi1HQokUOqCU7ZnVSJhR_sppQv9XNXN5lCXwo6J-RlqNMJ7lj2yBtdV0BHJ5g"
+		},
+		{
+			"key": "request_id",
+			"value": "{{uuid}}"
+		},
+		{
+			"key": "correlation_id",
+			"value": "{{uuid}}"
+		},
+		{
+			"key": "latitude",
+			"value": "12.93127"
+		},
+		{
+			"key": "longitude",
+			"value": "77.61649"
+		},
+		{
+			"key": "latitude_1",
+			"value": "12.93126"
+		},
+		{
+			"key": "longitude_1",
+			"value": "77.61638"
+		},
+		{
+			"key": "latitude_2",
+			"value": "12.89731"
+		},
+		{
+			"key": "longitude_2",
+			"value": "77.65136"
+		}
+	]
+}

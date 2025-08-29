@@ -1,0 +1,522 @@
+{
+	"info": {
+		"_postman_id": "6543d23c-c641-4e3a-bcdf-03e2e894d918",
+		"name": "Places API",
+		"description": "Postman collection for OLA Maps Places API (Autocomplete, Place Details, Nearby Search, Address Validation, Photo, etc.).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-6543d23c-c641-4e3a-bcdf-03e2e894d918?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "1) Autocomplete - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174000"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174001"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/places/v1/autocomplete?input={{autocomplete_input}}&location={{autocomplete_location}}&radius={{autocomplete_radius}}&strictbounds={{autocomplete_strictbounds}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"places",
+						"v1",
+						"autocomplete"
+					],
+					"query": [
+						{
+							"key": "input",
+							"value": "{{autocomplete_input}}"
+						},
+						{
+							"key": "location",
+							"value": "{{autocomplete_location}}"
+						},
+						{
+							"key": "radius",
+							"value": "{{autocomplete_radius}}"
+						},
+						{
+							"key": "strictbounds",
+							"value": "{{autocomplete_strictbounds}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Provides Autocomplete suggestions for a given substring."
+			},
+			"response": []
+		},
+		{
+			"name": "2) Place Details - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174002"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174003"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/places/v1/details?place_id={{place_id}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"places",
+						"v1",
+						"details"
+					],
+					"query": [
+						{
+							"key": "place_id",
+							"value": "{{place_id}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Returns details of a place for a given place_id."
+			},
+			"response": []
+		},
+		{
+			"name": "3) Advanced Place Details - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174004"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174005"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/places/v1/details/advanced?place_id={{place_id}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"places",
+						"v1",
+						"details",
+						"advanced"
+					],
+					"query": [
+						{
+							"key": "place_id",
+							"value": "{{place_id}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Returns advanced (more detailed) place information for a given place_id."
+			},
+			"response": []
+		},
+		{
+			"name": "4) Nearby Search - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174006"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174007"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/places/v1/nearbysearch?location={{nearby_location}}&types={{nearby_types}}&radius={{nearby_radius}}&rankBy={{nearby_rankby}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"places",
+						"v1",
+						"nearbysearch"
+					],
+					"query": [
+						{
+							"key": "location",
+							"value": "{{nearby_location}}"
+						},
+						{
+							"key": "types",
+							"value": "{{nearby_types}}"
+						},
+						{
+							"key": "radius",
+							"value": "{{nearby_radius}}"
+						},
+						{
+							"key": "rankBy",
+							"value": "{{nearby_rankby}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Finds places of a specific category (e.g., restaurant) around a given lat/lng location."
+			},
+			"response": []
+		},
+		{
+			"name": "5) Advanced Nearby Search - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174008"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-426614174009"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/places/v1/nearbysearch/advanced?location={{nearby_location}}&types={{nearby_types}}&radius={{nearby_radius}}&rankBy={{nearby_rankby}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"places",
+						"v1",
+						"nearbysearch",
+						"advanced"
+					],
+					"query": [
+						{
+							"key": "location",
+							"value": "{{nearby_location}}"
+						},
+						{
+							"key": "types",
+							"value": "{{nearby_types}}"
+						},
+						{
+							"key": "radius",
+							"value": "{{nearby_radius}}"
+						},
+						{
+							"key": "rankBy",
+							"value": "{{nearby_rankby}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Finds more detailed place info (advanced) for nearby places of a specific category."
+			},
+			"response": []
+		},
+		{
+			"name": "6) Address Validation - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-42661417400A"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-42661417400B"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/places/v1/addressvalidation?address={{addressvalidation_address}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"places",
+						"v1",
+						"addressvalidation"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "{{addressvalidation_address}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Validates the given address in input, returning a validated address and address components."
+			},
+			"response": []
+		},
+		{
+			"name": "7) Photo API - GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{bearer_token}}"
+					},
+					{
+						"key": "X-Request-Id",
+						"value": "123e4567-e89b-12d3-a456-42661417400C"
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": "123e4567-e89b-12d3-a456-42661417400D"
+					},
+					{
+						"key": "origin",
+						"value": "https://maps.olakrutrim.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/places/v1/photo?photo_reference={{photo_reference}}&api_key={{api_key}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"places",
+						"v1",
+						"photo"
+					],
+					"query": [
+						{
+							"key": "photo_reference",
+							"value": "{{photo_reference}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{api_key}}"
+						}
+					]
+				},
+				"description": "Fetches photos of a place based on the given photo_reference (returned in advanced place details)."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "api.olamaps.io"
+		},
+		{
+			"key": "api_key",
+			"value": "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
+		},
+		{
+			"key": "bearer_token",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMRndtX0U2akoyWG5yYkpkS1d1VXl2UllUN25lZ0FibDhWLXVSTno3UzZVIn0.eyJleHAiOjE3MzcyMDg1MjIsImlhdCI6MTczNzIwNDkyMiwianRpIjoiMjljYzNmODktZWZlZC00MTMzLWJkNGItZjM2NGNmMTFlOGJiIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50Lm9sYW1hcHMuaW8vcmVhbG1zL29sYW1hcHMiLCJzdWIiOiI1MWFkMmZjMS02NTZjLTQ5OTAtOWU0NS0xZjRlMzZiOWIzZTUiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJkNGNkNTVmYS1hOGQ3LTQyODctYjY1ZS01MDdkYzQ1NzI3YjEiLCJzY29wZSI6Im9wZW5pZCIsImNsaWVudEhvc3QiOm51bGwsIm9yZyI6Ik9SRy1iYjc0Mzc3NC1lNGIxLTQxMzEtYmZiMy02NDRlYWNmNDA2ZTIiLCJvcmcxIjp7fSwicmVhbG0iOiJvbGFtYXBzIiwiY2xpZW50QWRkcmVzcyI6bnVsbCwiY2xpZW50X2lkIjoiZDRjZDU1ZmEtYThkNy00Mjg3LWI2NWUtNTA3ZGM0NTcyN2IxIiwic2JuIjoiU0JOLTBjOTc5ZWVmLWQ0MTctNDcwNi1iYTc1LTQ4ZDk3NDU2MGRjMyJ9.vEGGTqdC7lqN7MRtD6W3bcwUKPSLt74eFlr4knatBBxxYCmTgpATlPxwyoPmESA2gy_KyMa-XikiZXB2suaw4A0NbDSNfWdg-XWnYG1fqVWGz1UDwpQjArsT1xxCBl0ioJB4XT9iNw2Ob-QmLJopcX5WmuE6nTZPOxxds0nX3nCzy1RFT_6mZ8Z74BT-orTRiH-48JTSXEaw1aJx1KHnwztlWcxRqzdXYgiBdmB2Nfl7IRxqH9NejD0Ujx8imvcOC1j1-Q2_pxc3yx9-6S8iIdo9N4sYsUnbz_nYHkQrKYG4-gHE3jblZWV9bQOo8p1sgHEfonEhEQSEu44M3zB_3g"
+		},
+		{
+			"key": "autocomplete_input",
+			"value": "kempegowda internation airport"
+		},
+		{
+			"key": "autocomplete_location",
+			"value": "12.931316595874005,77.61649243443775"
+		},
+		{
+			"key": "autocomplete_radius",
+			"value": "10000"
+		},
+		{
+			"key": "autocomplete_strictbounds",
+			"value": "false"
+		},
+		{
+			"key": "place_id",
+			"value": "ola-platform:a79ed32419962a11a588ea92b83ca78e"
+		},
+		{
+			"key": "nearby_location",
+			"value": "12.931544865377818,77.61638622280486"
+		},
+		{
+			"key": "nearby_types",
+			"value": "restaurant"
+		},
+		{
+			"key": "nearby_radius",
+			"value": "10000"
+		},
+		{
+			"key": "nearby_rankby",
+			"value": "popular"
+		},
+		{
+			"key": "photo_reference",
+			"value": "c3ae78ac452ec049f67b3cf9aee2b2e8"
+		},
+		{
+			"key": "addressvalidation_address",
+			"value": "7, Lok Kalyan Marg, New Delhi, Delhi, 110011"
+		}
+	]
+}

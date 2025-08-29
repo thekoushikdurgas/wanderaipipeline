@@ -1,0 +1,112 @@
+{
+	"info": {
+		"_postman_id": "5693d88d-b741-4fb8-a3be-3dd53a659b3c",
+		"name": "OLA Map API",
+		"description": "# Ola Maps API Documentation\n\n## Overview\n\nThe Ola Maps API provides a set of RESTful services to interact with map data, including places lookup, geocoding, reverse geocoding, and routing. This documentation details the endpoints, request structures, and examples to help you integrate the Ola Maps API into your applications.  \n\nReference :\n\n- [Ola Map API Official Documentation](https://maps.olakrutrim.com/docs)\n    \n- [Ola Maps API Reference](https://maps.olakrutrim.com/apidocs)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-5693d88d-b741-4fb8-a3be-3dd53a659b3c?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Generate Access Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "scope",
+									"value": "openid",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{Client ID}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{Client Secret}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://account.olamaps.io/realms/olamaps/protocol/openid-connect/token",
+							"protocol": "https",
+							"host": [
+								"account",
+								"olamaps",
+								"io"
+							],
+							"path": [
+								"realms",
+								"olamaps",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						},
+						"description": "API call retrieves access token from OLA Maps authentication service. It is further used as bearer token to call Ola API"
+					},
+					"response": []
+				}
+			],
+			"description": "To use the Ola Maps API, you need to obtain an access token using the client credentials provided by Ola. This token will be used as a bearer token in subsequent API calls."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "Bearer Token",
+			"value": "Your Token",
+			"type": "string"
+		},
+		{
+			"key": "API Key",
+			"value": "API KEY",
+			"type": "string"
+		},
+		{
+			"key": "Client ID",
+			"value": "d4cd55fa-a8d7-4287-b65e-507dc45727b1",
+			"type": "string"
+		},
+		{
+			"key": "Client Secret",
+			"value": "bQzMgcE1XCdd1kh8LWQwBFdzRg6hs4UD",
+			"type": "string"
+		}
+	]
+}

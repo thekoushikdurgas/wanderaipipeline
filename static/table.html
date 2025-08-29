@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Data Table</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="data-table-container" id="placesTable">
+        <!-- Table Header -->
+        <div class="table-header">
+            <h2 class="table-title">🗺️ Places Management</h2>
+            <div class="table-controls">
+                <div class="entries-control">
+                    <label for="entriesPerPage">Show</label>
+                    <select id="entriesPerPage">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span>entries per page</span>
+                </div>
+                <div class="search-control">
+                    <label for="searchInput">Search:</label>
+                    <input type="text" id="searchInput" placeholder="Search places...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="sortable" data-column="name">Name</th>
+                    <th class="sortable" data-column="types">Position</th>
+                    <th class="sortable" data-column="address">Office</th>
+                    <th class="sortable" data-column="latitude">Age</th>
+                    <th class="sortable" data-column="pincode">Start date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table data will be populated by JavaScript -->
+            </tbody>
+        </table>
+
+        <!-- Table Footer -->
+        <div class="table-footer">
+            <div class="entries-info">
+                Showing 1 to 10 of 57 entries
+            </div>
+            <div class="pagination">
+                <!-- Pagination buttons will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="table.js"></script>
+    <script>
+        // Initialize the data table
+        const dataTable = new DataTable('placesTable', {
+            pageSize: 10,
+            currentPage: 1,
+            sortColumn: 'place_id',
+            sortOrder: 'ASC'
+        });
+
+        // Sample data (replace with actual data from your backend)
+        const sampleData = [
+            {
+                place_id: 1,
+                name: "Airi Satou",
+                types: "Accountant",
+                address: "Tokyo",
+                latitude: 33,
+                longitude: 0,
+                pincode: "27/11/2008"
+            },
+            {
+                place_id: 2,
+                name: "Angelica Ramos",
+                types: "Chief Executive Officer (CEO)",
+                address: "London",
+                latitude: 47,
+                longitude: 0,
+                pincode: "08/10/2009"
+            },
+            {
+                place_id: 3,
+                name: "Ashton Cox",
+                types: "Junior Technical Author",
+                address: "San Francisco",
+                latitude: 66,
+                longitude: 0,
+                pincode: "11/01/2009"
+            },
+            {
+                place_id: 4,
+                name: "Bradley Greer",
+                types: "Software Engineer",
+                address: "London",
+                latitude: 41,
+                longitude: 0,
+                pincode: "12/10/2012"
+            },
+            {
+                place_id: 5,
+                name: "Brenden Wagner",
+                types: "Software Engineer",
+                address: "San Francisco",
+                latitude: 28,
+                longitude: 0,
+                pincode: "06/06/2011"
+            },
+            {
+                place_id: 6,
+                name: "Brielle Williamson",
+                types: "Integration Specialist",
+                address: "New York",
+                latitude: 61,
+                longitude: 0,
+                pincode: "01/12/2012"
+            },
+            {
+                place_id: 7,
+                name: "Bruno Nash",
+                types: "Software Engineer",
+                address: "London",
+                latitude: 38,
+                longitude: 0,
+                pincode: "02/05/2011"
+            },
+            {
+                place_id: 8,
+                name: "Caesar Vance",
+                types: "Pre-Sales Support",
+                address: "New York",
+                latitude: 21,
+                longitude: 0,
+                pincode: "11/12/2011"
+            },
+            {
+                place_id: 9,
+                name: "Cara Stevens",
+                types: "Sales Assistant",
+                address: "New York",
+                latitude: 46,
+                longitude: 0,
+                pincode: "05/12/2011"
+            },
+            {
+                place_id: 10,
+                name: "Cedric Kelly",
+                types: "Senior Javascript Developer",
+                address: "Edinburgh",
+                latitude: 22,
+                longitude: 0,
+                pincode: "28/03/2012"
+            }
+        ];
+
+        // Set the data
+        dataTable.setData(sampleData);
+
+        // Event listeners for table actions
+        document.getElementById('placesTable').addEventListener('tableEdit', (e) => {
+            console.log('Edit requested for ID:', e.detail.id);
+            // Handle edit action
+        });
+
+        document.getElementById('placesTable').addEventListener('tableDelete', (e) => {
+            console.log('Delete requested for ID:', e.detail.id);
+            // Handle delete action
+        });
+
+        document.getElementById('placesTable').addEventListener('tableView', (e) => {
+            console.log('View requested for ID:', e.detail.id);
+            // Handle view action
+        });
+    </script>
+</body>
+</html>
