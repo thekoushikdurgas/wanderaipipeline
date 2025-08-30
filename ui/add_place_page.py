@@ -8,6 +8,8 @@ including the place form and the Nearby Search API testing section.
 import random
 import streamlit as st
 import json
+import requests
+import time
 from typing import Callable, Dict, Any
 from config.settings import get_default_types
 from utils.logger import get_logger
@@ -40,10 +42,96 @@ class AddPlacePage:
         PlaceForm.render_add_place_form(on_submit=on_submit)
         
         # Render the API testing section
+        self.test_bearer_token_demo()
         self._render_api_testing_section()
         
         # Render the place details demo section
         # self.test_place_details_demo()
+        
+        # Render the bearer token demo section
+    
+    def get_bearer_token(self) -> Dict[str, Any]:
+        """
+        Get a new bearer token using the Generate Access Token API.
+        
+        Returns:
+            Dictionary containing the bearer token or error information
+        """
+        try:
+            # API endpoint details from the Postman collection
+            url = "https://account.olamaps.io/realms/olamaps/protocol/openid-connect/token"
+            
+            # Form data parameters from the Postman collection
+            form_data = {
+                "grant_type": "client_credentials",
+                "scope": "openid",
+                "client_id": "d4cd55fa-a8d7-4287-b65e-507dc45727b1",
+                "client_secret": "bQzMgcE1XCdd1kh8LWQwBFdzRg6hs4UD"
+            }
+            
+            # Headers for form data
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+            
+            self.logger.info("Requesting new bearer token from OLA Maps authentication service")
+            
+            # Make the POST request
+            start_time = time.time()
+            response = requests.post(
+                url=url,
+                data=form_data,
+                headers=headers,
+                timeout=30
+            )
+            end_time = time.time()
+            
+            # Prepare result
+            result = {
+                "success": response.status_code == 200,
+                "status_code": response.status_code,
+                "response_time": round((end_time - start_time) * 1000, 2),  # ms
+                "url": response.url,
+                "bearer_token": None,
+                "error": None
+            }
+            
+            # Parse response
+            try:
+                if response.status_code == 200:
+                    response_data = response.json()
+                    if "access_token" in response_data:
+                        result["bearer_token"] = response_data["access_token"]
+                        result["token_type"] = response_data.get("token_type", "Bearer")
+                        result["expires_in"] = response_data.get("expires_in")
+                        result["scope"] = response_data.get("scope")
+                        
+                        self.logger.info(f"Successfully obtained bearer token. Expires in: {result['expires_in']} seconds")
+                    else:
+                        result["success"] = False
+                        result["error"] = "No access_token in response"
+                        self.logger.error("No access_token found in response")
+                else:
+                    result["error"] = f"HTTP {response.status_code}: {response.reason}"
+                    self.logger.error(f"Failed to get bearer token: {result['error']}")
+                    
+            except json.JSONDecodeError as e:
+                result["success"] = False
+                result["error"] = f"Invalid JSON response: {str(e)}"
+                self.logger.error(f"Invalid JSON response: {str(e)}")
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Exception in get_bearer_token: {str(e)}")
+            return {
+                "success": False,
+                "status_code": None,
+                "response_time": None,
+                "url": url,
+                "bearer_token": None,
+                "error": f"Exception occurred: {str(e)}"
+            }
     
     def place_details(self, place_id: str) -> Dict[str, Any]:
         """
@@ -133,7 +221,6 @@ class AddPlacePage:
                     # self._render_endpoint_configuration(api_tester, nearby_endpoint)
                     # self._render_parameter_configuration(api_tester)
                     self._render_test_execution(api_tester, nearby_endpoint,latlongs)
-                    # self._render_url_structure(api_tester)
                 else:
                     st.error("❌ Nearby Search endpoint not found in the Places API collection")
             else:
@@ -146,201 +233,210 @@ class AddPlacePage:
     def _render_test_execution(self, api_tester: OLAMapsAPITester, nearby_endpoint,latlongs:pd.DataFrame):
         """Render the test execution section."""
         # Test button
+
+        # st.button("Rerun")
         if st.button("🚀 Test Nearby Search API", type="primary"):
             with st.spinner("Testing Nearby Search API..."):
                 try:
-                    # Get parameters from session state
-                    params = st.session_state.get("api_params", {})
-                    # logger.info(f"Latlongs: {latlongs}")
-                    # Prepare custom parameters
-                    # logger.info(f"Response data: {latlongs.values.tolist()}")
-                    latlong = random.choice(latlongs.values.tolist())
-                    # logger.info(f"Response data: {latlong}")
-                    types_list = get_default_types()
-                    # for latlong in latlongs.values.tolist()[:10]:
-                    for types in types_list:
-                            custom_params = {
-                                "location": f"{latlong[-2]},{latlong[-1]}",
-                                "types": types,
-                                "radius": str(params.get("radius", 10000)),
-                                "rankBy": params.get("rank_by", "popular")
-                            }
-                            if not nearby_endpoint.url.startswith("https://"):
-                                nearby_endpoint.url = f"https://{nearby_endpoint.url}"
-                            # logger.info(f"Nearby endpoint: {nearby_endpoint.url}")
-                            # Test the endpoint
-                            result = api_tester.test_endpoint(nearby_endpoint, custom_params)
-                            # logger.info(f"Result: {result}")
-                            # Display results
-                            self._render_test_results(result,latlong)
-                    
+                    self._render_test_results(latlongs,nearby_endpoint,api_tester)
                 except Exception as e:
                     st.error(f"Error testing API: {str(e)}")
                     self.logger.error("Error testing Nearby Search API", error=str(e))
     
-    def _render_test_results(self, result,latlong):
+    def _render_test_results(self,latlongs:pd.DataFrame,nearby_endpoint,api_tester: OLAMapsAPITester):
         """Render the test results section."""
-        st.markdown("### 📊 API Test Results")        
-        response_data = result.get("response", {})
-        # logger.info(f"Response data: {latlong}")
-        if response_data:
-            # Try to parse and display the response nicely
-            try:
-                if isinstance(response_data, str):
-                    response_data = json.loads(response_data)
-                st.json(response_data)
-                # # Display predictions with place details
-                # if "predictions" in response_data:
-                #     # st.markdown("### 🏢 Place Predictions with Details")
-                #     for prediction in response_data["predictions"]:  # Show first 5 predictions
-                #         with st.expander(f"📍 {prediction.get('description', 'Unknown Place')}", expanded=False):
-                #             # Get detailed place information
-                #             logger.info(f"Place ID: {prediction["place_id"]}")
-                #             place_data = self.place_details(prediction["place_id"])
-                #             if place_data.get("success") and place_data.get("data"):
-                #                 location = place_data["data"]["result"]["geometry"]["location"]
-                #                 # logger.info(f"Location: {location}")
-                #                 place_detail = {
-                #                     "pincode": latlong[-3],
-                #                     "place_id": prediction['place_id']	,
-                #                     "name": place_data["data"]["result"].get('name', 'N/A'),
-                #                     "address": place_data["data"]["result"].get('formatted_address', 'N/A'),
-                #                     "latitude": location.get('lat', 'N/A'),
-                #                     "longitude": location.get('lng', 'N/A'),
-                #                     "description": prediction.get('description', 'N/A'),
-                #                     "types": ', '.join(prediction.get('types', [])),
-                #                 }
-                #                 for component in place_data["data"]["result"]["address_components"]:
-                #                     if "postal_code" in component:
-                #                         place_detail["postal_code"] = component['postal_code']
-                #                         break
-                #                 st.json(place_detail)
-                #             else:
-                #                 st.warning("No detailed information available")
-                            
-                            # col1, col2 = st.columns([1, 2])
-                            
-                            # with col1:
-                            #     # if place_data.get("success"):
-                            #     #     st.success("✅ Place details retrieved successfully")
-                            #     # else:
-                            #     #     st.error(f"❌ Failed to get place details: {place_data.get('error', 'Unknown error')}")
-                            
-                            # with col2:
-                            #     st.markdown("**Detailed Information:**")
-                # If it's a successful response with places, show a summary
-                if isinstance(response_data, dict):
-                    places = response_data.get("results", [])
-                    if places:
-                        st.markdown(f"**Found {len(places)} places:**")
-                        
-                        # Create a simple table of results
-                        places_summary = []
-                        for place in places[:10]:  # Show first 10
-                            places_summary.append({
-                                "Name": place.get("name", "N/A"),
-                                "Types": ", ".join(place.get("types", [])),
-                                "Rating": place.get("rating", "N/A"),
-                                "Address": place.get("vicinity", "N/A")
-                            })
-                        
-                        if places_summary:
-                            st.dataframe(places_summary, use_container_width=True)
-                        
-                        if len(places) > 10:
-                            st.info(f"... and {len(places) - 10} more places")
-                    
-                    # Show error if any
-                    error_message = response_data.get("error_message")
-                    if error_message:
-                        st.error(f"API Error: {error_message}")
+        types_list = get_default_types()
+        if not nearby_endpoint.url.startswith("https://"):
+            nearby_endpoint.url = f"https://{nearby_endpoint.url}"
+        latlongs = latlongs.values.tolist()[:10]
+        # Initialize progress tracking for two separate progress bars
+        total_latlongs = len(latlongs)
+        total_types = len(types_list)
+        
+        # Create containers for progress tracking
+        status_container = st.container()
+        progress_container = st.container()
+        
+        # with status_container:
+        #     status_text = st.empty()
+        #     current_location_text = st.empty()
+        
+        with progress_container:
+            # Progress Bar 1: For latlongs (outer loop)
+            # st.markdown("**📍 Location Progress:**")
+            latlong_progress_bar = st.progress(0)
+            latlong_progress_text = st.empty()
+            
+            # Progress Bar 2: For types_list (inner loop)
+            # st.markdown("**🔍 Place Types Progress:**")
+            types_progress_bar = st.progress(0)
+            types_progress_text = st.empty()
+        
+        for latlong_idx, latlong in enumerate(latlongs):
+            # Update Progress Bar 1: Location progress
+            latlong_progress_percentage = (latlong_idx + 1) / total_latlongs
+            latlong_progress_bar.progress(latlong_progress_percentage)
+            latlong_progress_text.text(f"📍 Processing location {latlong_idx + 1}/{total_latlongs} in {latlong[-2]},{latlong[-1]}")
+            
+            # Update location status
+            # current_location_text.text(f"Processing location in {latlong[-2]},{latlong[-1]} ({latlong_idx + 1}/{total_latlongs})")
+            
+            for type_idx, types in enumerate(types_list):
+                # Update Progress Bar 2: Types progress
+                types_progress_percentage = (type_idx + 1) / total_types
+                types_progress_bar.progress(types_progress_percentage)
+                types_progress_text.text(f"🔍 Processing type {type_idx + 1}/{total_types}: {types} in {latlong[-2]},{latlong[-1]}")
                 
-            except json.JSONDecodeError:
-                st.text(response_data)
-        else:
-            st.warning("No response data received")
-    
-    def _render_url_structure(self, api_tester: OLAMapsAPITester):
-        """Render the endpoint URL structure section."""
-        st.markdown("### 🔗 Endpoint URL Structure")
-        
-        # Get parameters from session state
-        params = st.session_state.get("api_params", {})
-        location = params.get("location", "12.931544865377818,77.61638622280486")
-        types = params.get("types", "restaurant")
-        radius = params.get("radius", 10000)
-        rank_by = params.get("rank_by", "popular")
-        
-        st.code(f"""
-GET {api_tester.base_url}/places/v1/nearbysearch
-?location={location}
-&types={types}
-&radius={radius}
-&rankBy={rank_by}
-&api_key={api_tester.api_key[:10]}...
-        """.strip())
-    
-    # def test_place_details_demo(self):
-    #     """Demonstrate the place_details function with a sample place_id."""
-    #     st.markdown("---")
-    #     st.header("🧪 Place Details API Demo")
-    #     st.markdown("Test the Place Details API with a sample place ID.")
-        
-    #     # Sample place ID from the Postman collection
-    #     sample_place_id = "ola-platform:a79ed32419962a11a588ea92b83ca78e"
-        
-    #     col1, col2 = st.columns([2, 1])
-        
-    #     with col1:
-    #         place_id = st.text_input(
-    #             "Place ID",
-    #             value=sample_place_id,
-    #             help="Enter a place ID to get detailed information"
-    #         )
-        
-    #     with col2:
-    #         if st.button("🔍 Get Place Details", type="primary"):
-    #             with st.spinner("Fetching place details..."):
-    #                 result = self.place_details(place_id)
-                    
-    #                 if result.get("success"):
-    #                     st.success("✅ Place details retrieved successfully!")
-                        
-    #                     # Display the results
-    #                     detail_data = result.get("data", {})
-    #                     if "result" in detail_data:
-    #                         place_info = detail_data["result"]
+                # Update status
+                # status_text.text(f"Processing: {types} for location {latlong[-3]} ({type_idx + 1}/{total_types})")
+                custom_params = {
+                    "location": f"{latlong[-2]},{latlong[-1]}",
+                    "types": types,
+                    "radius": str(100000),
+                    "rankBy": "popular",
+                    "limit": "100"
+                }
+                result = api_tester.test_endpoint(nearby_endpoint, custom_params)
+                
+                st.markdown("### 📊 API Test Results")        
+                response_data = result["response"]
+                if response_data:
+                    # Try to parse and display the response nicely
+                    try:
+                        if isinstance(response_data, str):
+                            response_data = json.loads(response_data)
+                        if "predictions" in response_data:
                             
-    #                         st.markdown("### 📍 Place Information")
-    #                         st.markdown(f"**Name:** {place_info.get('name', 'N/A')}")
-    #                         st.markdown(f"**Address:** {place_info.get('formatted_address', 'N/A')}")
-    #                         st.markdown(f"**Phone:** {place_info.get('formatted_phone_number', 'N/A')}")
-    #                         st.markdown(f"**Website:** {place_info.get('website', 'N/A')}")
-    #                         st.markdown(f"**Rating:** {place_info.get('rating', 'N/A')}")
-    #                         st.markdown(f"**Price Level:** {place_info.get('price_level', 'N/A')}")
-                            
-    #                         # Show geometry
-    #                         if "geometry" in place_info and "location" in place_info["geometry"]:
-    #                             location = place_info["geometry"]["location"]
-    #                             st.markdown(f"**Coordinates:** {location.get('lat', 'N/A')}, {location.get('lng', 'N/A')}")
-                            
-    #                         # Show opening hours
-    #                         if "opening_hours" in place_info:
-    #                             opening_hours = place_info["opening_hours"]
-    #                             st.markdown(f"**Open Now:** {opening_hours.get('open_now', 'N/A')}")
-    #                             if opening_hours.get('weekday_text'):
-    #                                 st.markdown("**Opening Hours:**")
-    #                                 for day in opening_hours["weekday_text"]:
-    #                                     st.markdown(f"- {day}")
+                            self.predictions_json(response_data["predictions"],latlong,types)
+                        elif "message" in response_data:
+                            st.warning("Authentication error detected. Attempting to refresh bearer token...")
+                            token_result = self.get_bearer_token()
+                            if token_result.get("success"):
+                                new_token = token_result["bearer_token"]
+                                api_tester.change_bearer_token(new_token)
+                                st.success(f"✅ Bearer token refreshed successfully! Expires in: {token_result.get('expires_in', 'N/A')} seconds")
+                                st.info("🔄 Retrying API call with new token...")
+                                retry_result = api_tester.test_endpoint(nearby_endpoint, custom_params)
+                                if retry_result.get("success"):
+                                    st.success("✅ API call successful with new token!")
+                                    retry_response = retry_result["response"]
+                                    if isinstance(retry_response, str):
+                                        retry_response = json.loads(retry_response)
+                                    if "predictions" in retry_response:
+                                        self.predictions_json(retry_response["predictions"],latlong,types)
+                                    elif "error_message" in retry_response:
+                                        st.error(f"API Error: {retry_response["error_message"]}")
+                                else:
+                                    st.error(f"❌ Retry failed: {retry_result.get('error', 'Unknown error')}")
+                            else:
+                                st.error(f"❌ Failed to refresh bearer token: {token_result.get('error', 'Unknown error')}")
+                                st.json(token_result)
+                        elif response_data["error_message"] != "":
+                            st.error(f"API Error: {response_data["error_message"]}")
                         
-    #                     st.markdown(f"**Response Time:** {result.get('response_time', 'N/A')} ms")
-                        
-    #                     # Show raw response in expandable section
-    #                     with st.expander("📄 Raw API Response"):
-    #                         st.json(detail_data)
-    #                 else:
-    #                     st.error(f"❌ Failed to get place details: {result.get('error', 'Unknown error')}")
+                    except json.JSONDecodeError:
+                        st.text(response_data)
+                else:
+                    st.warning("No response data received")
+        
+        # Complete the progress tracking for both progress bars
+        latlong_progress_bar.progress(1.0)
+        types_progress_bar.progress(1.0)
+        latlong_progress_text.text("✅ All locations processed!")
+        types_progress_text.text("✅ All place types processed!")
+        # status_text.text("✅ All API tests completed successfully!")
+        # current_location_text.text("")
+        
+        # # Clean up progress indicators after a moment
+        # status_text.empty()
+        # current_location_text.empty()
+        latlong_progress_text.empty()
+        types_progress_text.empty()
+        latlong_progress_bar.empty()
+        types_progress_bar.empty()
+        
+        # Show completion message
+        total_iterations = total_latlongs * total_types
+        st.success(f"🎉 Successfully processed {total_iterations} API calls across {total_latlongs} locations and {total_types} place types!")
 
+    def predictions_json(self,predictions,latlong,types):
+        """Render the prediction JSON section."""
+        st.markdown(f"**Found {len(predictions)} predictions:**")
+        # st.json(len(predictions),expanded=False)
+        for prediction in predictions:  # Show first 5 predictions
+            with st.expander(f"📍 {prediction.get('description', 'Unknown Place')}", expanded=False):
+                # Get detailed place information
+                logger.info(f"Place ID: {prediction["place_id"]}")
+                place_data = self.place_details(prediction["place_id"])
+                if place_data.get("success") and place_data.get("data"):
+                    location = place_data["data"]["result"]["geometry"]["location"]
+                    # logger.info(f"Location: {location}")
+                    if  types not in prediction.get('types', []):
+                        prediction['types'].append(types)
+                    reviews = 0
+                    for i in place_data["data"]["result"].get('reviews', []):
+                        reviews += i.get('rating', 0)
+                    place_detail = {
+                        "place_id": prediction['place_id'],
+                        "pincode": latlong[-3],
+                        "name": place_data["data"]["result"].get('name', ''),
+                        "address": place_data["data"]["result"].get('formatted_address', ''),
+                        "latitude": location.get('lat', '0.0'),
+                        "longitude": location.get('lng', '0.0'),
+                        "description": prediction.get('description', ''),
+                        "types": ', '.join(prediction.get('types', [])),
+                        "rating": place_data["data"]["result"].get('rating', 0),
+                        "followers": reviews,
+                        "country":'India'
+                    }
+                    for component in place_data["data"]["result"]["address_components"]:
+                        if "postal_code" in component:
+                            place_detail["postal_code"] = component['postal_code']
+                        if "country" in component:
+                            place_detail["country"] = component['country']
+                    st.json(place_detail)
+                    if self.add_place_details(place_detail) == 1:
+                        st.success("🎉 Place details added successfully!")
+                    elif self.add_place_details(place_detail) == 0:
+                        st.success("✅ Place already exists")
+                    elif self.add_place_details(place_detail) == 2:
+                        st.error("❌ Failed to add place details")
+                else:
+                    st.warning("No detailed information available")
+    def add_place_details(self,place_detail) -> int:
+        """Add the place details to the database in table 'places'. It will also sync to excel.
+        
+        Args:
+            place_detail: Place detail dictionary
+            
+        Returns:
+            int: 0,1,2
+            0: Place already exists
+            1: Place added successfully
+            2: Failed to add place
+        
+        """
+        print(place_detail)
+        return 1
+    def test_bearer_token_demo(self):
+        """Demonstrate the get_bearer_token function."""
+        st.markdown("---")
+        st.header("🔑 Bearer Token Generation Demo")
+        st.markdown("Test the Generate Access Token API to get a new bearer token.")
+        if st.button("🔑 Generate New Bearer Token", type="primary"):
+            with st.spinner("Generating new bearer token..."):
+                result = self.get_bearer_token()
+                if result.get("success"):
+                    st.success("✅ Bearer token generated successfully!")
+                    # Display token details
+                    st.markdown("### 🔑 Token Information")
+                    st.code(result.get("bearer_token", ""), language="python")
+                else:
+                    st.error(f"❌ Failed to generate bearer token: {result.get('error', 'Unknown error')}")
+                    st.markdown(f"**Status Code:** {result.get('status_code', '')}")
+                    st.markdown(f"**Response Time:** {result.get('response_time', '')} ms")
+                    with st.expander("📄 Error Details"):
+                        st.json(result)
 
 def render_add_place_page(place_ops):
     """

@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "6543d23c-c641-4e3a-bcdf-03e2e894d918",
+		"_postman_id": "00caa49e-8cdd-4661-a03d-91d2035a0c8c",
 		"name": "Places API",
 		"description": "Postman collection for OLA Maps Places API (Autocomplete, Place Details, Nearby Search, Address Validation, Photo, etc.).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20572666",
-		"_collection_link": "https://www.postman.com/cloudy-spaceship-595852/workspace/travels/collection/20572666-6543d23c-c641-4e3a-bcdf-03e2e894d918?action=share&source=collection_link&creator=20572666"
+		"_collection_link": "https://prbal5-1003.postman.co/workspace/prbal~38626842-f3c9-4a6f-a7bc-0367cd9a6824/collection/20572666-00caa49e-8cdd-4661-a03d-91d2035a0c8c?action=share&source=collection_link&creator=20572666"
 	},
 	"item": [
 		{
@@ -108,7 +108,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/places/v1/details?place_id={{place_id}}&api_key={{api_key}}",
+					"raw": "{{baseUrl}}/places/v1/details?place_id={{place_id}}",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -124,7 +124,8 @@
 						},
 						{
 							"key": "api_key",
-							"value": "{{api_key}}"
+							"value": "{{api_key}}",
+							"disabled": true
 						}
 					]
 				},
@@ -221,7 +222,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/places/v1/nearbysearch?location={{nearby_location}}&types={{nearby_types}}&radius={{nearby_radius}}&rankBy={{nearby_rankby}}&api_key={{api_key}}",
+					"raw": "{{baseUrl}}/places/v1/nearbysearch?location={{nearby_location}}&types={{nearby_types}}&radius={{nearby_radius}}&rankBy={{nearby_rankby}}&limit={{limit_list}}",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -249,7 +250,12 @@
 						},
 						{
 							"key": "api_key",
-							"value": "{{api_key}}"
+							"value": "{{api_key}}",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "{{limit_list}}"
 						}
 					]
 				},
@@ -437,6 +443,185 @@
 				"description": "Fetches photos of a place based on the given photo_reference (returned in advanced place details)."
 			},
 			"response": []
+		},
+		{
+			"name": "https://api.olamaps.io/places/v1/autocomplete?input=kempegowda%20internation%20airport&location=12.931316595874005%2C77.61649243443775&radius=1&strictbounds=true&api_key=YOUR_SECRET_TOKEN",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Request-Id",
+						"value": ""
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": ""
+					}
+				],
+				"url": {
+					"raw": "https://api.olamaps.io/places/v1/autocomplete?input=kempegowda%20internation%20airport&location=12.931316595874005%2C77.61649243443775&radius=1&strictbounds=true&api_key=YOUR_SECRET_TOKEN",
+					"protocol": "https",
+					"host": [
+						"api",
+						"olamaps",
+						"io"
+					],
+					"path": [
+						"places",
+						"v1",
+						"autocomplete"
+					],
+					"query": [
+						{
+							"key": "input",
+							"value": "kempegowda%20internation%20airport"
+						},
+						{
+							"key": "location",
+							"value": "12.931316595874005%2C77.61649243443775"
+						},
+						{
+							"key": "radius",
+							"value": "1"
+						},
+						{
+							"key": "strictbounds",
+							"value": "true"
+						},
+						{
+							"key": "api_key",
+							"value": "YOUR_SECRET_TOKEN"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl 'https://api.olamaps.io/places/v1/autocomplete?input=kempegowda%20internation%20airport&location=12.931316595874005%2C77.61649243443775&radius=1&strictbounds=true&api_key=YOUR_SECRET_TOKEN' \\\r\n  --header 'X-Request-Id: ' \\\r\n  --header 'X-Correlation-Id: '"
+			},
+			"response": []
+		},
+		{
+			"name": "https://api.olamaps.io/places/v1/nearbysearch?location=12.931544865377818%2C77.61638622280486&types=restaurant&radius=10000&withCentroid=false&rankBy=popular&limit=1&api_key=YOUR_SECRET_TOKEN",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Request-Id",
+						"value": ""
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": ""
+					}
+				],
+				"url": {
+					"raw": "https://api.olamaps.io/places/v1/nearbysearch?location=12.931544865377818%2C77.61638622280486&types=restaurant&radius=10000&withCentroid=false&rankBy=popular&limit=1&api_key=YOUR_SECRET_TOKEN",
+					"protocol": "https",
+					"host": [
+						"api",
+						"olamaps",
+						"io"
+					],
+					"path": [
+						"places",
+						"v1",
+						"nearbysearch"
+					],
+					"query": [
+						{
+							"key": "location",
+							"value": "12.931544865377818%2C77.61638622280486"
+						},
+						{
+							"key": "types",
+							"value": "restaurant"
+						},
+						{
+							"key": "radius",
+							"value": "10000"
+						},
+						{
+							"key": "withCentroid",
+							"value": "false"
+						},
+						{
+							"key": "rankBy",
+							"value": "popular"
+						},
+						{
+							"key": "limit",
+							"value": "1"
+						},
+						{
+							"key": "api_key",
+							"value": "YOUR_SECRET_TOKEN"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl 'https://api.olamaps.io/places/v1/nearbysearch?location=12.931544865377818%2C77.61638622280486&types=restaurant&radius=10000&withCentroid=false&rankBy=popular&limit=1&api_key=YOUR_SECRET_TOKEN' \\\r\n  --header 'X-Request-Id: ' \\\r\n  --header 'X-Correlation-Id: '"
+			},
+			"response": []
+		},
+		{
+			"name": "https://api.olamaps.io/places/v1/nearbysearch/advanced?location=12.931544865377818%2C77.61638622280486&types=restaurant&radius=10000&withCentroid=false&rankBy=popular&limit=1&api_key=SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Request-Id",
+						"value": ""
+					},
+					{
+						"key": "X-Correlation-Id",
+						"value": ""
+					}
+				],
+				"url": {
+					"raw": "https://api.olamaps.io/places/v1/nearbysearch/advanced?location=12.931544865377818%2C77.61638622280486&types=restaurant&radius=10000&withCentroid=false&rankBy=popular&limit=1&api_key=SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf",
+					"protocol": "https",
+					"host": [
+						"api",
+						"olamaps",
+						"io"
+					],
+					"path": [
+						"places",
+						"v1",
+						"nearbysearch",
+						"advanced"
+					],
+					"query": [
+						{
+							"key": "location",
+							"value": "12.931544865377818%2C77.61638622280486"
+						},
+						{
+							"key": "types",
+							"value": "restaurant"
+						},
+						{
+							"key": "radius",
+							"value": "10000"
+						},
+						{
+							"key": "withCentroid",
+							"value": "false"
+						},
+						{
+							"key": "rankBy",
+							"value": "popular"
+						},
+						{
+							"key": "limit",
+							"value": "1"
+						},
+						{
+							"key": "api_key",
+							"value": "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl 'https://api.olamaps.io/places/v1/nearbysearch/advanced?location=12.931544865377818%2C77.61638622280486&types=restaurant&radius=10000&withCentroid=false&rankBy=popular&limit=1&api_key=SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf' \\\r\n  --header 'X-Request-Id: ' \\\r\n  --header 'X-Correlation-Id: '"
+			},
+			"response": []
 		}
 	],
 	"event": [
@@ -517,6 +702,11 @@
 		{
 			"key": "addressvalidation_address",
 			"value": "7, Lok Kalyan Marg, New Delhi, Delhi, 110011"
+		},
+		{
+			"key": "limit_list",
+			"value": "",
+			"type": "default"
 		}
 	]
 }

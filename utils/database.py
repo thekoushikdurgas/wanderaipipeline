@@ -114,12 +114,7 @@ class PlacesDatabase:
         # Validate required parameters
         if not all([self.user, self.password, self.host, self.port, self.dbname]):
             error_msg = "Database connection parameters must be set in environment variables"
-            logger.error(error_msg, 
-                        user=bool(self.user),
-                        password=bool(self.password),
-                        host=bool(self.host),
-                        port=bool(self.port),
-                        dbname=bool(self.dbname))
+            logger.error(error_msg, user=bool(self.user),password=bool(self.password),host=bool(self.host),port=bool(self.port),dbname=bool(self.dbname))
             raise DatabaseError(error_msg)
         
         # Create SQLAlchemy engine with enhanced configuration

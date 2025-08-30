@@ -245,12 +245,13 @@ class OLAMapsAPITester:
     def __init__(self):
         self.base_url = "https://api.olamaps.io"
         self.api_key = "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
-        self.bearer_token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMRndtX0U2akoyWG5yYkpkS1d1VXl2UllUN25lZ0FibDhWLXVSTno3UzZVIn0.eyJleHAiOjE3MzcyNjgwMTgsImlhdCI6MTczNzI2NDQxOCwianRpIjoiZjg2MDVmYmYtMDUxMi00N2RkLTk5ZjItMGQ2YTJmNThkMjFhIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50Lm9sYW1hcHMuaW8vcmVhbG1zL29sYW1hcHMiLCJzdWIiOiI1MWFkMmZjMS02NTZjLTQ5OTAtOWU0NS0xZjRlMzZiOWIzZTUiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJkNGNkNTVmYS1hOGQ3LTQyODctYjY1ZS01MDdkYzQ1NzI3YjEiLCJzY29wZSI6Im9wZW5pZCIsImNsaWVudEhvc3QiOm51bGwsIm9yZyI6Ik9SRy1iYjc0Mzc3NC1lNGIxLTQxMzEtYmZiMy02NDRlYWNmNDA2ZTIiLCJvcmcxIjp7fSwicmVhbG0iOiJvbGFtYXBzIiwiY2xpZW50QWRkcmVzcyI6bnVsbCwiY2xpZW50X2lkIjoiZDRjZDU1ZmEtYThkNy00Mjg3LWI2NWUtNTA3ZGM0NTcyN2IxIiwic2JuIjoiU0JOLTBjOTc5ZWVmLWQ0MTctNDcwNi1iYTc1LTQ4ZDk3NDU2MGRjMyJ9.1Zj4MW-SSwqGOlqQyh0tyYYT8wlC2e_20n9OSnMjlohXUDkxjwxAHYllRoKEen8Dr5qWPQqwdbOj05ZsPyumA_mnHPCm6_F3b1B-z1w-WdbyzeGlMhgaQnxzV9LFRXLmk-Zo0v9NaDZaI1DtKEMIk81Nh8XH8WiXZeZR0niW8TGbzHC5OhADIO3nxcDRjgUtOd1YzU-koTCmNmdSdCY7PtYtgy1u2X18YPqhLaCMwa4SPfZtgbQIRCbfyhH9jzTNgiwJw6MaBrR-u8v7oAvO66DYdkbhEM5swAc5FwZCmcgTlHaBHvm25nsyVowdLilNMup2CUexJfJNIRIGx7peWA"
+        self.bearer_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0eXAiOiJDbGllbnQiLCJqdGkiOiJyN0p2QThLSExSOGJuSnN0ODN5Y1VkIiwic3ViIjoic2g3ZHVCN2hZSERQUEN1MVp2TnZCZyIsImFjYyI6InA5eXp5dEJHczR2aHZUVEhUbnNtYTkiLCJleHAiOjE3NTY1ODg3OTl9.J_6ajBCWlrTLbYoyvefL_aJGrEgBCuD8yFT4CJC-C2n8CwsFnJR8p8rF_C5w3mzlYestAgocPSrDYEQOeFGSj1DVHrdZSbYvqHJsK4Q7Fnq5JMRxNiIOF6oKLpNOUFDQMPo1F7qR5MPIbvzPMq8VwaRHpOHKvviaJbq4Bxz2wUhAROdiwDKn7d6v8Xz9sh2ue0Fnj-odSlUpjyIuh_G2EaTsCKXeF-tJinJ17KqMQrLIbX2AEuJOt1Dau2r81O_xerb451X3WlpsIhDrjDXRaGME2813QEI_X34bjT8FvDiJBhy8nhdH0UgSypgddrDtyAAkzNqBpd82Xf-8MvJSIQ"
         self.collection_loader = PostmanCollectionLoader()
         self.endpoints = {}
         self.current_collection = None
         self.variables: Dict[str, Any] = {}
-    
+    def change_bearer_token(self, bearer_token: str):
+        self.bearer_token = bearer_token
     def load_collection(self, collection_filename: str):
         """Load a specific Postman collection file."""
         try:
