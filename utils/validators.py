@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 # Import configuration and logging
 try:
-    from config.settings import validation_config
+    from utils.settings import validation_config
     from utils.logger import get_logger
 except ImportError:
     # Fallback configuration if modules are not available
@@ -21,8 +21,8 @@ except ImportError:
         max_latitude = 90.0
         min_longitude = -180.0
         max_longitude = 180.0
-        pincode_pattern = r'^\d{6}$'
-        pincode_length = 6
+        pincode_pattern = r'^\d{1,9}$'
+        pincode_max_length = 9
         max_name_length = 255
         max_address_length = 1000
         max_types_length = 255
@@ -365,12 +365,12 @@ class TextValidator:
                 result.add_error("Address contains potentially unsafe content", "address")
                 break
         
-        # Address format suggestions
-        if not any(char.isdigit() for char in address):
-            result.add_warning(
-                "Address doesn't contain any numbers. Consider adding house/building number.",
-                "address"
-            )
+        # # Address format suggestions
+        # if not any(char.isdigit() for char in address):
+        #     result.add_warning(
+        #         "Address doesn't contain any numbers. Consider adding house/building number.",
+        #         "address"
+        #     )
         
         logger.debug("Address validation completed", is_valid=result.is_valid, errors=len(result.errors))
         return result
@@ -469,21 +469,21 @@ class PincodeValidator:
         
         pincode = pincode.strip()
         
-        # Check length
-        if len(pincode) != validation_config.pincode_length:
+        # Check maximum length (must be less than 10 characters)
+        if len(pincode) >= 10:
             result.add_error(
-                f"Pincode must be exactly {validation_config.pincode_length} digits, got: {len(pincode)}",
+                f"Pincode must be less than 10 characters, got: {len(pincode)}",
                 "pincode"
             )
         
-        # Check format using regex
+        # Check format using regex (must be digits only)
         if not re.match(validation_config.pincode_pattern, pincode):
             result.add_error(
                 f"Pincode must contain only digits, got: {pincode}",
                 "pincode"
             )
         
-        # Additional validations for Indian postal codes
+        # Additional validations for Indian postal codes (6 digits)
         if len(pincode) == 6 and pincode.isdigit():
             # Check for obviously invalid pincodes
             if pincode == "000000":
@@ -492,6 +492,13 @@ class PincodeValidator:
                 result.add_warning("Pincode 999999 is reserved and might be invalid", "pincode")
             elif pincode[0] == '0':
                 result.add_warning("Pincodes starting with 0 are rare in India", "pincode")
+        
+        # Warning for very short pincodes
+        if len(pincode) < 3:
+            result.add_warning(
+                f"Pincode is very short ({len(pincode)} digits). Please verify this is correct.",
+                "pincode"
+            )
         
         logger.debug("Pincode validation completed", is_valid=result.is_valid, errors=len(result.errors))
         return result
@@ -548,6 +555,30 @@ class PlaceValidator:
                 combined_result.field_errors.update(field_result.field_errors)
                 if not field_result.is_valid:
                     combined_result.is_valid = False
+        
+        # Validate new columns
+        if 'rating' in place_data and place_data['rating'] is not None:
+            try:
+                rating = float(place_data['rating'])
+                if rating < 0.0 or rating > 5.0:
+                    combined_result.add_error("Rating must be between 0.0 and 5.0", 'rating')
+            except (ValueError, TypeError):
+                combined_result.add_error("Rating must be a valid number", 'rating')
+        
+        if 'followers' in place_data and place_data['followers'] is not None:
+            try:
+                followers = float(place_data['followers'])
+                if followers < 0:
+                    combined_result.add_error("Followers must be a non-negative number", 'followers')
+            except (ValueError, TypeError):
+                combined_result.add_error("Followers must be a valid number", 'followers')
+        
+        if 'country' in place_data and place_data['country']:
+            country = str(place_data['country']).strip()
+            if len(country) > 100:
+                combined_result.add_error("Country name must be less than 100 characters", 'country')
+            elif len(country) < 2:
+                combined_result.add_error("Country name must be at least 2 characters", 'country')
         
         # Validate coordinates if both are present
         if 'latitude' in place_data and 'longitude' in place_data:

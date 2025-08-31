@@ -20,10 +20,11 @@ import numpy as np
 
 # Import utilities
 try:
-    from config.settings import db_config, get_database_connection_string, excel_config
+    from utils.settings import db_config, get_database_connection_string, excel_config
     from utils.logger import get_logger, log_performance
     from utils.error_handlers import handle_database_errors, DatabaseError, safe_execute
     from utils.excel_handler import excel_handler
+    from models.place import Place
 except ImportError:
     # Fallback for development without modules
     class MockConfig:
@@ -231,13 +232,16 @@ class PlacesDatabase:
                 # Create the places table with comprehensive schema
                 create_table_sql = """
                 CREATE TABLE IF NOT EXISTS places (
-                    place_id SERIAL PRIMARY KEY,
+                    id str PRIMARY KEY,
                     latitude DECIMAL(10, 8) NOT NULL CHECK (latitude >= -90 AND latitude <= 90),
                     longitude DECIMAL(11, 8) NOT NULL CHECK (longitude >= -180 AND longitude <= 180),
                     types TEXT NOT NULL CHECK (LENGTH(types) > 0),
                     name TEXT NOT NULL CHECK (LENGTH(name) > 0),
                     address TEXT NOT NULL CHECK (LENGTH(address) > 0),
                     pincode TEXT NOT NULL CHECK (pincode ~ '^[0-9]{6}$'),
+                    rating REAL DEFAULT 0.0,
+                    followers REAL DEFAULT 0.0,
+                    country VARCHAR(100) DEFAULT 'Unknown',
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
                 );
@@ -335,7 +339,7 @@ class PlacesDatabase:
         try:
             query = """
             SELECT 
-                place_id,
+                id,
                 latitude,
                 longitude, 
                 types,
@@ -345,7 +349,7 @@ class PlacesDatabase:
                 created_at,
                 updated_at
             FROM places 
-            ORDER BY place_id
+            ORDER BY id
             """
             
             logger.debug("Executing get_all_places query")
@@ -356,7 +360,7 @@ class PlacesDatabase:
                 self.engine,
                 parse_dates=['created_at', 'updated_at'],  # Optimize datetime parsing
                 dtype={
-                    'place_id': np.int32,
+                    'id': 'string',
                     'latitude': np.float64,
                     'longitude': np.float64,
                     'types': 'string',
@@ -392,7 +396,7 @@ class PlacesDatabase:
     @handle_database_errors
     @log_performance("get_places_paginated")
     def get_places_paginated(self, page: int = 1, page_size: int = 10, 
-                            sort_by: str = "place_id", sort_order: str = "ASC",
+                            sort_by: str = "id", sort_order: str = "ASC",
                             search_term: str = None) -> Tuple[pd.DataFrame, int]:
         """
         Get places with pagination, sorting, and search functionality.
@@ -418,12 +422,12 @@ class PlacesDatabase:
         sort_order = sort_order.upper() if sort_order.upper() in ['ASC', 'DESC'] else 'ASC'
         
         # Validate sort column to prevent SQL injection
-        valid_sort_columns = ['place_id', 'name', 'types', 'address', 'latitude', 
+        valid_sort_columns = ['id', 'name', 'types', 'address', 'latitude', 
                              'longitude', 'pincode', 'created_at', 'updated_at']
         if sort_by not in valid_sort_columns:
             logger.warning("Invalid sort column specified", 
                           sort_by=sort_by, valid_columns=valid_sort_columns)
-            sort_by = 'place_id'
+            sort_by = 'id'
         
         logger.debug("Getting paginated places", 
                     page=page, page_size=page_size, sort_by=sort_by, 
@@ -472,7 +476,7 @@ class PlacesDatabase:
             
             main_query = f"""
             SELECT 
-                place_id,
+                id,
                 latitude,
                 longitude,
                 types,
@@ -502,7 +506,7 @@ class PlacesDatabase:
                 params=params,
                 parse_dates=['created_at', 'updated_at'],
                 dtype={
-                    'place_id': np.int32,
+                    'id': 'string',
                     'latitude': np.float64,
                     'longitude': np.float64,
                     'types': 'string',
@@ -532,7 +536,7 @@ class PlacesDatabase:
     
     @handle_database_errors
     @log_performance("get_places_by_type_paginated")
-    def get_places_by_type_paginated(self, place_type: str, page: int = 1, page_size: int = 10, sort_by: str = "place_id", sort_order: str = "ASC") -> Tuple[pd.DataFrame, int]:
+    def get_places_by_type_paginated(self, place_type: str, page: int = 1, page_size: int = 10, sort_by: str = "id", sort_order: str = "ASC") -> Tuple[pd.DataFrame, int]:
         """
         Get places of a specific type with pagination and sorting.
         Optimized with pandas for faster data processing.
@@ -553,11 +557,11 @@ class PlacesDatabase:
         sort_order = sort_order.upper() if sort_order.upper() in ['ASC', 'DESC'] else 'ASC'
         
         # Validate sort column
-        valid_sort_columns = ['place_id', 'name', 'types', 'address', 'latitude', 
+        valid_sort_columns = ['id', 'name', 'types', 'address', 'latitude', 
                              'longitude', 'pincode', 'created_at', 'updated_at']
         if sort_by not in valid_sort_columns:
             logger.warning("Invalid sort column specified", sort_by=sort_by)
-            sort_by = 'place_id'
+            sort_by = 'id'
         
         logger.debug("Getting places by type with pagination", 
                     place_type=place_type, page=page, page_size=page_size)
@@ -580,7 +584,7 @@ class PlacesDatabase:
             
             main_query = f"""
             SELECT 
-                place_id,
+                id,
                 latitude,
                 longitude,
                 types,
@@ -611,7 +615,7 @@ class PlacesDatabase:
                 params=params,
                 parse_dates=['created_at', 'updated_at'],
                 dtype={
-                    'place_id': np.int32,
+                    'id': 'string',
                     'latitude': np.float64,
                     'longitude': np.float64,
                     'types': 'string',
@@ -639,19 +643,24 @@ class PlacesDatabase:
     
     @handle_database_errors
     @log_performance("add_place")
-    def add_place(self, latitude: float, longitude: float, types: str, 
-                  name: str, address: str, pincode: str) -> bool:
+    def add_place(self,id: str, latitude: float, longitude: float, types: str, 
+                  name: str, address: str, pincode: str, rating: float = 0.0, 
+                  followers: float = 0.0, country: str = "Unknown") -> bool:
         """
         Add a new place to the database with Excel sync.
         Optimized with numpy for faster data validation.
         
         Args:
+            id: Place ID
             latitude: Place latitude
             longitude: Place longitude  
             types: Place types
             name: Place name
             address: Place address
             pincode: Place pincode
+            rating: Place rating (0.0 to 5.0, default 0.0)
+            followers: Number of followers (default 0.0)
+            country: Country name (default "Unknown")
             
         Returns:
             bool: True if successful
@@ -671,35 +680,42 @@ class PlacesDatabase:
             with self.engine.connect() as conn:
                 # Insert and get the new place ID
                 insert_sql = """
-                INSERT INTO places (latitude, longitude, types, name, address, pincode)
-                VALUES (:latitude, :longitude, :types, :name, :address, :pincode)
-                RETURNING place_id, created_at, updated_at
+                INSERT INTO places (id,latitude, longitude, types, name, address, pincode, rating, followers, country)
+                VALUES (:id, :latitude, :longitude, :types, :name, :address, :pincode, :rating, :followers, :country)
+                RETURNING id, created_at, updated_at
                 """
                 
                 result = conn.execute(text(insert_sql), {
+                    'id': id,
                     'latitude': float(latitude),
                     'longitude': float(longitude),
                     'types': types,
                     'name': name,
                     'address': address,
-                    'pincode': pincode
+                    'pincode': pincode,
+                    'rating': float(rating),
+                    'followers': float(followers),
+                    'country': str(country)
                 })
                 
                 # Get the inserted record details
                 inserted_row = result.fetchone()
                 if inserted_row:
-                    place_id, created_at, updated_at = inserted_row
+                    id, created_at, updated_at = inserted_row
                     
                     # Sync to Excel if enabled
                     if excel_config.enable_excel_sync:
                         place_data = {
-                            'place_id': place_id,
+                            'id': str(id),
                             'latitude': float(latitude),
                             'longitude': float(longitude),
                             'types': types,
                             'name': name,
                             'address': address,
                             'pincode': pincode,
+                            'rating': float(rating),
+                            'followers': float(followers),
+                            'country': str(country),
                             'created_at': created_at,
                             'updated_at': updated_at
                         }
@@ -707,11 +723,11 @@ class PlacesDatabase:
                         safe_execute(
                             lambda: excel_handler.add_place_to_excel(place_data),
                             "add_place_to_excel",
-                            context={"place_id": place_id, "operation": "add_place"}
+                            context={"id": id, "operation": "add_place"}
                         )
                 
                 conn.commit()
-                logger.info("Place added successfully", place_id=place_id, name=name)
+                logger.info("Place added successfully", id=id, name=name)
                 return True
                 
         except SQLAlchemyError as e:
@@ -722,26 +738,87 @@ class PlacesDatabase:
             return False
     
     @handle_database_errors
+    @log_performance("add_place_full")
+    def add_place_full(self, place_data: Dict[str, Any]) -> bool:
+        """
+        Add a new place with full data including rating, followers, and country.
+        
+        Args:
+            place_data: Dictionary containing all place information
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Extract required fields
+            required_fields = ['latitude', 'longitude', 'types', 'name', 'address', 'pincode']
+            for field in required_fields:
+                if field not in place_data:
+                    logger.error(f"Missing required field: {field}")
+                    return False
+            
+            # Extract optional fields with defaults
+            rating = place_data.get('rating', 0.0)
+            followers = place_data.get('followers', 0.0)
+            country = place_data.get('country', 'Unknown')
+            
+            # Validate rating range
+            if not (0.0 <= rating <= 5.0):
+                logger.warning("Rating out of range, setting to 0.0", rating=rating)
+                rating = 0.0
+            
+            # Validate followers
+            if followers < 0:
+                logger.warning("Followers cannot be negative, setting to 0.0", followers=followers)
+                followers = 0.0
+            
+            # Validate country
+            if not country or not country.strip():
+                country = 'Unknown'
+            
+            # Call the main add_place method
+            return self.add_place(
+                id=str(place_data['id']),
+                latitude=place_data['latitude'],
+                longitude=place_data['longitude'],
+                types=place_data['types'],
+                name=place_data['name'],
+                address=place_data['address'],
+                pincode=place_data['pincode'],
+                rating=rating,
+                followers=followers,
+                country=country
+            )
+            
+        except Exception as e:
+            logger.error("Failed to add place with full data", error=str(e), place_data=place_data)
+            return False
+    
+    @handle_database_errors
     @log_performance("update_place")
-    def update_place(self, place_id: int, latitude: float, longitude: float, 
-                    types: str, name: str, address: str, pincode: str) -> bool:
+    def update_place(self, id: str, latitude: float, longitude: float, 
+                    types: str, name: str, address: str, pincode: str, 
+                    rating: float = None, followers: float = None, country: str = None) -> bool:
         """
         Update an existing place in the database with Excel sync.
         Optimized with numpy for faster data validation.
         
         Args:
-            place_id: ID of place to update
+            id: ID of place to update
             latitude: Updated latitude
             longitude: Updated longitude
             types: Updated types
             name: Updated name
             address: Updated address
             pincode: Updated pincode
+            rating: Updated place rating (optional)
+            followers: Updated number of followers (optional)
+            country: Updated country name (optional)
             
         Returns:
             bool: True if successful
         """
-        logger.debug("Updating place", place_id=place_id, name=name)
+        logger.debug("Updating place", id=id, name=name)
         
         # Vectorized coordinate validation using numpy
         lat_array = np.array([latitude])
@@ -754,23 +831,49 @@ class PlacesDatabase:
         
         try:
             with self.engine.connect() as conn:
-                update_sql = """
-                UPDATE places 
-                SET latitude = :latitude, longitude = :longitude, types = :types, 
-                    name = :name, address = :address, pincode = :pincode, updated_at = NOW()
-                WHERE place_id = :place_id
-                RETURNING updated_at
-                """
+                # Build dynamic update query based on provided fields
+                update_fields = [
+                    "id = :id",
+                    "latitude = :latitude",
+                    "longitude = :longitude", 
+                    "types = :types",
+                    "name = :name", 
+                    "address = :address", 
+                    "pincode = :pincode",
+                    "updated_at = NOW()"
+                ]
                 
-                result = conn.execute(text(update_sql), {
+                update_params = {
+                    'id': str(id),
                     'latitude': float(latitude),
                     'longitude': float(longitude),
                     'types': types,
                     'name': name,
                     'address': address,
                     'pincode': pincode,
-                    'place_id': int(place_id)
-                })
+                }
+                
+                # Add optional fields if provided
+                if rating is not None:
+                    update_fields.append("rating = :rating")
+                    update_params['rating'] = float(rating)
+                
+                if followers is not None:
+                    update_fields.append("followers = :followers")
+                    update_params['followers'] = float(followers)
+                
+                if country is not None:
+                    update_fields.append("country = :country")
+                    update_params['country'] = str(country)
+                
+                update_sql = f"""
+                UPDATE places 
+                SET {', '.join(update_fields)}
+                WHERE id = :id
+                RETURNING updated_at
+                """
+                
+                result = conn.execute(text(update_sql), update_params)
                 
                 # Check if any rows were updated
                 updated_row = result.fetchone()
@@ -780,27 +883,30 @@ class PlacesDatabase:
                     # Sync to Excel if enabled
                     if excel_config.enable_excel_sync:
                         updated_data = {
-                            'place_id': int(place_id),
+                            'id': str(id),
                             'latitude': float(latitude),
                             'longitude': float(longitude),
                             'types': types,
                             'name': name,
                             'address': address,
                             'pincode': pincode,
+                            'rating': rating if rating is not None else 0.0,
+                            'followers': followers if followers is not None else 0.0,
+                            'country': country if country is not None else 'Unknown',
                             'updated_at': updated_at
                         }
                         
                         safe_execute(
-                            lambda: excel_handler.update_place_in_excel(place_id, updated_data),
+                            lambda: excel_handler.update_place_in_excel(id, updated_data),
                             "update_place_in_excel",
-                            context={"place_id": place_id, "operation": "update_place"}
+                            context={"id": id, "operation": "update_place"}
                         )
                     
                     conn.commit()
-                    logger.info("Place updated successfully", place_id=place_id, name=name)
+                    logger.info("Place updated successfully", id=id, name=name)
                     return True
                 else:
-                    logger.warning("No place found to update", place_id=place_id)
+                    logger.warning("No place found to update", id=id)
                     return False
                 
         except SQLAlchemyError as e:
@@ -812,49 +918,49 @@ class PlacesDatabase:
     
     @handle_database_errors
     @log_performance("delete_place")
-    def delete_place(self, place_id: int) -> bool:
+    def delete_place(self, id: str) -> bool:
         """
         Delete a place from the database with Excel sync.
         
         Args:
-            place_id: ID of place to delete
+            id: ID of place to delete
             
         Returns:
             bool: True if successful
         """
-        logger.debug("Deleting place", place_id=place_id)
+        logger.debug("Deleting place", id=id)
         
         try:
             with self.engine.connect() as conn:
                 # First check if place exists
-                check_sql = "SELECT name FROM places WHERE place_id = :place_id"
-                check_result = conn.execute(text(check_sql), {'place_id': int(place_id)})
+                check_sql = "SELECT name FROM places WHERE id = :id"
+                check_result = conn.execute(text(check_sql), {'id': str(id)})
                 existing_place = check_result.fetchone()
                 
                 if not existing_place:
-                    logger.warning("Place not found for deletion", place_id=place_id)
+                    logger.warning("Place not found for deletion", id=id)
                     return False
                 
                 place_name = existing_place[0]
                 
                 # Delete the place
-                delete_sql = "DELETE FROM places WHERE place_id = :place_id"
-                result = conn.execute(text(delete_sql), {'place_id': int(place_id)})
+                delete_sql = "DELETE FROM places WHERE id = :id"
+                result = conn.execute(text(delete_sql), {'id': str(id)})
                 
                 if result.rowcount > 0:
                     # Sync to Excel if enabled
                     if excel_config.enable_excel_sync:
                         safe_execute(
-                            lambda: excel_handler.delete_place_from_excel(place_id),
+                            lambda: excel_handler.delete_place_from_excel(id),
                             "delete_place_from_excel",
-                            context={"place_id": place_id, "operation": "delete_place"}
+                            context={"id": id, "operation": "delete_place"}
                         )
                     
                     conn.commit()
-                    logger.info("Place deleted successfully", place_id=place_id, name=place_name)
+                    logger.info("Place deleted successfully", id=id, name=place_name)
                     return True
                 else:
-                    logger.warning("No place was deleted", place_id=place_id)
+                    logger.warning("No place was deleted", id=id)
                     return False
                 
         except SQLAlchemyError as e:
@@ -864,11 +970,11 @@ class PlacesDatabase:
             logger.error("Unexpected error deleting place", error=str(e))
             return False
     
-    def get_place_by_id(self, place_id: int) -> Optional[Dict]:
+    def get_place_by_id(self, id: str) -> Optional[Dict]:
         """Get a specific place by ID with optimized pandas query."""
         try:
-            query = "SELECT * FROM places WHERE place_id = %(place_id)s"
-            params = {'place_id': int(place_id)}
+            query = "SELECT * FROM places WHERE id = %(id)s"
+            params = {'id': id}
             
             df = pd.read_sql_query(
                 query, 
@@ -876,7 +982,7 @@ class PlacesDatabase:
                 params=params,
                 parse_dates=['created_at', 'updated_at'],
                 dtype={
-                    'place_id': np.int32,
+                    'id': 'string',
                     'latitude': np.float64,
                     'longitude': np.float64,
                     'types': 'string',
@@ -905,7 +1011,7 @@ class PlacesDatabase:
             query = """
             SELECT * FROM places 
             WHERE name ILIKE %(search_term)s OR types ILIKE %(search_term)s 
-            ORDER BY place_id
+            ORDER BY id
             """
             search_pattern = f'%{search_term}%'
             params = {'search_term': search_pattern}
@@ -916,7 +1022,7 @@ class PlacesDatabase:
                 params=params,
                 parse_dates=['created_at', 'updated_at'],
                 dtype={
-                    'place_id': np.int32,
+                    'id': 'string',
                     'latitude': np.float64,
                     'longitude': np.float64,
                     'types': 'string',
@@ -937,7 +1043,7 @@ class PlacesDatabase:
     def get_places_by_type(self, place_type: str) -> pd.DataFrame:
         """Get all places of a specific type with optimized pandas query."""
         try:
-            query = "SELECT * FROM places WHERE types = %(place_type)s ORDER BY place_id"
+            query = "SELECT * FROM places WHERE types = %(place_type)s ORDER BY id"
             params = {'place_type': place_type}
             
             df = pd.read_sql_query(
@@ -946,13 +1052,16 @@ class PlacesDatabase:
                 params=params,
                 parse_dates=['created_at', 'updated_at'],
                 dtype={
-                    'place_id': np.int32,
+                    'id': 'string',
                     'latitude': np.float64,
                     'longitude': np.float64,
                     'types': 'string',
                     'name': 'string',
                     'address': 'string',
-                    'pincode': 'string'
+                    'pincode': 'string',
+                    'rating': np.float32,
+                    'followers': np.float32,
+                    'country': 'string'
                 }
             )
             
@@ -1057,3 +1166,84 @@ class PlacesDatabase:
             lambda: excel_handler.clear_cache(),
             "clear_excel_cache"
         )
+
+    @handle_database_errors
+    @log_performance("add_place_with_model")
+    def add_place_with_model(self, place: Place) -> bool:
+        """
+        Add a new place to the database using the Place model.
+        
+        Args:
+            place: Place model instance
+            
+        Returns:
+            bool: True if successful
+        """
+        logger.debug("Adding new place with model", name=place.name, types=place.types)
+        
+        try:
+            # Convert Place model to dictionary
+            place_data = place.to_dict()
+            
+            # Use the existing add_place_full method
+            success = self.add_place_full(place_data)
+            
+            if success:
+                logger.info("Place added successfully using model", name=place.name)
+            else:
+                logger.error("Failed to add place using model", name=place.name)
+            
+            return success
+            
+        except Exception as e:
+            logger.error("Error adding place with model", error=str(e), name=place.name)
+            return False
+    
+    @handle_database_errors
+    @log_performance("get_place_by_id_with_model")
+    def get_place_by_id_with_model(self, id: str) -> Optional[Place]:
+        """Get a specific place by ID and return as Place model."""
+        try:
+            place_dict = self.get_place_by_id(id)
+            if place_dict:
+                return Place.from_dict(place_dict)
+            return None
+        except Exception as e:
+            logger.error("Error getting place by ID with model", error=str(e), id=id)
+            return None
+    
+    @handle_database_errors
+    @log_performance("update_place_with_model")
+    def update_place_with_model(self, place: Place) -> bool:
+        """
+        Update an existing place in the database using the Place model.
+        
+        Args:
+            place: Place model instance with updated data
+            
+        Returns:
+            bool: True if successful
+        """
+        if not place.id:
+            logger.error("Place ID is required for update")
+            return False
+        
+        logger.debug("Updating place with model", id=place.id, name=place.name)
+        
+        try:
+            # Convert Place model to dictionary
+            place_data = place.to_dict()
+            
+            # Use the existing update_place_full method
+            success = self.update_place_full(place_data)
+            
+            if success:
+                logger.info("Place updated successfully using model", id=place.id)
+            else:
+                logger.error("Failed to update place using model", id=place.id)
+            
+            return success
+            
+        except Exception as e:
+            logger.error("Error updating place with model", error=str(e), id=place.id)
+            return False

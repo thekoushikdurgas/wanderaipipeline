@@ -20,10 +20,12 @@ The section provides a comprehensive interface for testing the Nearby Search API
 The interface allows users to configure the following parameters:
 
 #### Location Parameters
+
 - **Location (lat,lng)**: Latitude and longitude coordinates (default: Bangalore airport coordinates)
 - **Radius**: Search radius in meters (100-50,000m, default: 10,000m)
 
 #### Search Parameters
+
 - **Types**: Place types to search for (e.g., restaurant, hotel, tourist_attraction)
 - **Rank By**: How to rank results (popular, distance, rating)
 
@@ -32,16 +34,19 @@ The interface allows users to configure the following parameters:
 When an API call is executed, the interface displays:
 
 #### Request Information
+
 - HTTP method and URL
 - Status code and response time
 - Complete request configuration
 
 #### Response Data
+
 - Raw JSON response
 - Parsed place information in a table format
 - Summary of found places with key details
 
 #### Error Handling
+
 - Clear error messages for failed requests
 - Validation of input parameters
 - Graceful handling of API errors
@@ -66,6 +71,7 @@ def render_add_place_page(place_ops: PlaceOperations):
 ### Dependencies
 
 The implementation uses:
+
 - `OLAMapsAPITester` from `api_testing.ola_maps_api_tester`
 - Streamlit components for UI
 - JSON parsing for response handling
@@ -74,6 +80,7 @@ The implementation uses:
 ### API Configuration
 
 The section uses the following API configuration:
+
 - **Base URL**: `https://api.olamaps.io`
 - **Endpoint**: `/places/v1/nearbysearch`
 - **Method**: GET
@@ -107,12 +114,14 @@ The section uses the following API configuration:
 ### Example Use Cases
 
 #### Finding Restaurants
+
 - **Location**: `12.931544865377818,77.61638622280486` (Bangalore airport)
 - **Types**: `restaurant`
 - **Radius**: `5000`
 - **Rank By**: `popular`
 
 #### Finding Tourist Attractions
+
 - **Location**: `12.9716,77.5946` (Bangalore city center)
 - **Types**: `tourist_attraction`
 - **Radius**: `10000`
@@ -121,18 +130,20 @@ The section uses the following API configuration:
 ## Benefits
 
 ### For Users
+
 - **Real-time Testing**: Test API endpoints without leaving the application
 - **Parameter Experimentation**: Try different parameters to understand API behavior
 - **Learning Tool**: Understand how the Nearby Search API works
 - **Validation**: Verify API responses before implementing in code
 
 ### For Developers
+
 - **Debugging**: Quickly test API calls during development
 - **Documentation**: See actual API responses and behavior
 - **Integration Testing**: Verify API integration works correctly
 - **Performance Monitoring**: Track response times and success rates
 
-## Error Handling
+## Error Handling 1
 
 The section includes comprehensive error handling:
 

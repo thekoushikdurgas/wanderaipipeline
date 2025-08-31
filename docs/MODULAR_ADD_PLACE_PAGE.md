@@ -8,7 +8,7 @@ The Add Place page functionality has been refactored into a modular structure to
 
 ### File Structure
 
-```
+```txt
 ui/
 ├── add_place_page.py          # New modular add place page
 ├── components.py              # Existing UI components

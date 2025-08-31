@@ -11,11 +11,13 @@ import json
 import requests
 import time
 from typing import Callable, Dict, Any
-from config.settings import get_default_types
+from utils.settings import get_default_types
 from utils.logger import get_logger
 from ui.components import PlaceForm
 from api_testing.ola_maps_api_tester import OLAMapsAPITester
 import pandas as pd
+from models.place import Place
+from utils.database import PlacesDatabase
 logger = get_logger(__name__)
 
 
@@ -196,9 +198,20 @@ class AddPlacePage:
 
     def load_location_csv(self, file_path):
         """Load the CSV file."""
-        df = pd.read_csv(file_path)
-        # 28.6174167,77.2129167
-        # return df.drop_duplicates(subset=[column_name])[column_name].tolist()
+        # Read CSV with low_memory=False to avoid DtypeWarning for mixed types
+        df = pd.read_csv(file_path, low_memory=False).copy()
+        
+        # Convert latitude and longitude columns to numeric types
+        # Handle any conversion errors by coercing to numeric and dropping rows with invalid data
+        if 'latitude' in df.columns:
+            df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
+        if 'longitude' in df.columns:
+            df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
+        
+        # Drop rows where latitude or longitude is NaN (invalid coordinates)
+        if 'latitude' in df.columns and 'longitude' in df.columns:
+            df = df.dropna(subset=['latitude', 'longitude'])
+        
         return df
     
     def _render_api_testing_section(self):
@@ -206,7 +219,6 @@ class AddPlacePage:
         st.markdown("---")
         st.header("🔍 API Testing - Nearby Search")
         st.markdown("Test the OLA Maps Places API Nearby Search endpoint with dynamic parameters.")
-        latlongs = self.load_location_csv("utils/pincodes.csv")
         # Initialize API tester
         try:
             api_tester = OLAMapsAPITester()
@@ -217,10 +229,19 @@ class AddPlacePage:
             if api_tester.endpoints:
                 # Get the Nearby Search endpoint
                 nearby_endpoint = api_tester.get_endpoint_by_name("4) Nearby Search - GET")
+                latlongs = self.load_location_csv("utils/pincodes.csv")
                 if nearby_endpoint:
-                    # self._render_endpoint_configuration(api_tester, nearby_endpoint)
-                    # self._render_parameter_configuration(api_tester)
-                    self._render_test_execution(api_tester, nearby_endpoint,latlongs)
+                    # latlongs['done'] = 0
+                    # for i in get_default_types():
+                    #     latlongs[i] = 0
+                    # latlongs.to_csv("utils/pincodes_final.csv", index=False)
+                    if st.button("🚀 Test Nearby Search API", type="primary"):
+                        with st.spinner("Testing Nearby Search API..."):
+                            try:
+                                self._render_test_results(latlongs,nearby_endpoint,api_tester)
+                            except Exception as e:
+                                st.error(f"Error testing API: {str(e)}")
+                                self.logger.error("Error testing Nearby Search API", error=str(e))
                 else:
                     st.error("❌ Nearby Search endpoint not found in the Places API collection")
             else:
@@ -230,74 +251,72 @@ class AddPlacePage:
             st.error(f"❌ Error initializing API tester: {str(e)}")
             self.logger.error("Error in API testing section", error=str(e))
     
-    def _render_test_execution(self, api_tester: OLAMapsAPITester, nearby_endpoint,latlongs:pd.DataFrame):
-        """Render the test execution section."""
-        # Test button
+    # def _render_test_execution(self, api_tester: OLAMapsAPITester, nearby_endpoint,latlongs:pd.DataFrame):
+    #     """Render the test execution section."""
+    #     # Test button
 
-        # st.button("Rerun")
-        if st.button("🚀 Test Nearby Search API", type="primary"):
-            with st.spinner("Testing Nearby Search API..."):
-                try:
-                    self._render_test_results(latlongs,nearby_endpoint,api_tester)
-                except Exception as e:
-                    st.error(f"Error testing API: {str(e)}")
-                    self.logger.error("Error testing Nearby Search API", error=str(e))
+    #     # st.button("Rerun")
     
     def _render_test_results(self,latlongs:pd.DataFrame,nearby_endpoint,api_tester: OLAMapsAPITester):
         """Render the test results section."""
         types_list = get_default_types()
         if not nearby_endpoint.url.startswith("https://"):
             nearby_endpoint.url = f"https://{nearby_endpoint.url}"
-        latlongs = latlongs.values.tolist()[:10]
+        # latlongs = latlongs.values.tolist()[:10]
         # Initialize progress tracking for two separate progress bars
-        total_latlongs = len(latlongs)
+        total_latlongs = len(latlongs.values.tolist())
         total_types = len(types_list)
         
         # Create containers for progress tracking
-        status_container = st.container()
-        progress_container = st.container()
+        # status_container = st.container()
+        # progress_container = st.container()
         
         # with status_container:
         #     status_text = st.empty()
         #     current_location_text = st.empty()
         
-        with progress_container:
-            # Progress Bar 1: For latlongs (outer loop)
-            # st.markdown("**📍 Location Progress:**")
-            latlong_progress_bar = st.progress(0)
-            latlong_progress_text = st.empty()
+        # with progress_container:
+        # Progress Bar 1: For latlongs (outer loop)
+        # st.markdown("**📍 Location Progress:**")
+        latlong_progress_bar = st.progress(0)
+        latlong_progress_text = st.empty()
             
-            # Progress Bar 2: For types_list (inner loop)
-            # st.markdown("**🔍 Place Types Progress:**")
-            types_progress_bar = st.progress(0)
-            types_progress_text = st.empty()
+        # Progress Bar 2: For types_list (inner loop)
+        # st.markdown("**🔍 Place Types Progress:**")
+        types_progress_bar = st.progress(0)
+        types_progress_text = st.empty()
         
-        for latlong_idx, latlong in enumerate(latlongs):
+        for latlong_idx, latlong in latlongs.iterrows():
             # Update Progress Bar 1: Location progress
+            logger.info(f"latlong: {latlong}")
             latlong_progress_percentage = (latlong_idx + 1) / total_latlongs
             latlong_progress_bar.progress(latlong_progress_percentage)
-            latlong_progress_text.text(f"📍 Processing location {latlong_idx + 1}/{total_latlongs} in {latlong[-2]},{latlong[-1]}")
+            latlong_progress_text.text(f"📍 Processing location {latlong_idx + 1}/{total_latlongs} in {latlong['latitude']},{latlong['longitude']}")
             
             # Update location status
             # current_location_text.text(f"Processing location in {latlong[-2]},{latlong[-1]} ({latlong_idx + 1}/{total_latlongs})")
-            
+            if latlongs.loc[latlong_idx,"done"] == 1:
+                break
             for type_idx, types in enumerate(types_list):
+                if latlongs.loc[latlong_idx,types] == None:
+                    latlongs.loc[latlong_idx,types] = 0
+                elif latlongs.loc[latlong_idx,types] > 0:
+                    logger.info(f"types: {types} already found in latlong['types']")
+                    break
                 # Update Progress Bar 2: Types progress
                 types_progress_percentage = (type_idx + 1) / total_types
                 types_progress_bar.progress(types_progress_percentage)
-                types_progress_text.text(f"🔍 Processing type {type_idx + 1}/{total_types}: {types} in {latlong[-2]},{latlong[-1]}")
-                
+                types_progress_text.text(f"🔍 Processing type {type_idx + 1}/{total_types}: {types} in {latlongs.loc[latlong_idx,'latitude']},{latlongs.loc[latlong_idx,'longitude']}")
                 # Update status
                 # status_text.text(f"Processing: {types} for location {latlong[-3]} ({type_idx + 1}/{total_types})")
                 custom_params = {
-                    "location": f"{latlong[-2]},{latlong[-1]}",
+                    "location": f"{latlongs.loc[latlong_idx,'latitude']},{latlongs.loc[latlong_idx,'longitude']}",
                     "types": types,
                     "radius": str(100000),
                     "rankBy": "popular",
                     "limit": "100"
                 }
                 result = api_tester.test_endpoint(nearby_endpoint, custom_params)
-                
                 st.markdown("### 📊 API Test Results")        
                 response_data = result["response"]
                 if response_data:
@@ -306,8 +325,8 @@ class AddPlacePage:
                         if isinstance(response_data, str):
                             response_data = json.loads(response_data)
                         if "predictions" in response_data:
-                            
-                            self.predictions_json(response_data["predictions"],latlong,types)
+                            latlongs.loc[latlong_idx,types] = len(response_data["predictions"])
+                            self.predictions_json(response_data["predictions"],latlongs.loc[latlong_idx],types)
                         elif "message" in response_data:
                             st.warning("Authentication error detected. Attempting to refresh bearer token...")
                             token_result = self.get_bearer_token()
@@ -323,7 +342,8 @@ class AddPlacePage:
                                     if isinstance(retry_response, str):
                                         retry_response = json.loads(retry_response)
                                     if "predictions" in retry_response:
-                                        self.predictions_json(retry_response["predictions"],latlong,types)
+                                        latlongs.loc[latlong_idx,types] = len(retry_response["predictions"])
+                                        self.predictions_json(retry_response["predictions"],latlongs.loc[latlong_idx],types)
                                     elif "error_message" in retry_response:
                                         st.error(f"API Error: {retry_response["error_message"]}")
                                 else:
@@ -333,13 +353,14 @@ class AddPlacePage:
                                 st.json(token_result)
                         elif response_data["error_message"] != "":
                             st.error(f"API Error: {response_data["error_message"]}")
-                        
                     except json.JSONDecodeError:
                         st.text(response_data)
                 else:
                     st.warning("No response data received")
-        
+            # latlongs.to_csv("utils/pincodes.csv", index=False)
         # Complete the progress tracking for both progress bars
+        latlongs.loc[latlong_idx,"done"] = 1
+        latlongs.to_csv("utils/pincodes.csv", index=False)
         latlong_progress_bar.progress(1.0)
         types_progress_bar.progress(1.0)
         latlong_progress_text.text("✅ All locations processed!")
@@ -364,7 +385,7 @@ class AddPlacePage:
         st.markdown(f"**Found {len(predictions)} predictions:**")
         # st.json(len(predictions),expanded=False)
         for prediction in predictions:  # Show first 5 predictions
-            with st.expander(f"📍 {prediction.get('description', 'Unknown Place')}", expanded=False):
+            with st.expander(f"📍 {prediction["place_id"]}", expanded=False):
                 # Get detailed place information
                 logger.info(f"Place ID: {prediction["place_id"]}")
                 place_data = self.place_details(prediction["place_id"])
@@ -377,12 +398,12 @@ class AddPlacePage:
                     for i in place_data["data"]["result"].get('reviews', []):
                         reviews += i.get('rating', 0)
                     place_detail = {
-                        "place_id": prediction['place_id'],
-                        "pincode": latlong[-3],
+                        "id": prediction['place_id'],
+                        "pincode": str(latlong["pincode"]),
                         "name": place_data["data"]["result"].get('name', ''),
                         "address": place_data["data"]["result"].get('formatted_address', ''),
-                        "latitude": location.get('lat', '0.0'),
-                        "longitude": location.get('lng', '0.0'),
+                        "latitude": location.get('lat', 0.0),
+                        "longitude": location.get('lng', 0.0),
                         "description": prediction.get('description', ''),
                         "types": ', '.join(prediction.get('types', [])),
                         "rating": place_data["data"]["result"].get('rating', 0),
@@ -391,23 +412,34 @@ class AddPlacePage:
                     }
                     for component in place_data["data"]["result"]["address_components"]:
                         if "postal_code" in component:
-                            place_detail["postal_code"] = component['postal_code']
+                            place_detail["postal_code"] = str(component['postal_code'])
                         if "country" in component:
                             place_detail["country"] = component['country']
-                    st.json(place_detail)
-                    if self.add_place_details(place_detail) == 1:
+                            
+                    logger.info(f"Place detail: {place_detail}")
+                    # # Ensure place_detail has the new fields with defaults
+                    # if 'rating' not in place_detail:
+                    #     place_detail['rating'] = 0.0
+                    # if 'followers' not in place_detail:
+                    #     place_detail['followers'] = 0.0
+                    # if 'country' not in place_detail:
+                    #     place_detail['country'] = 'Unknown'
+                    
+                    result = self.add_place_details(place_detail)
+                    if result == 1:
+                        st.json(place_detail)
                         st.success("🎉 Place details added successfully!")
-                    elif self.add_place_details(place_detail) == 0:
+                    elif result == 0:
                         st.success("✅ Place already exists")
-                    elif self.add_place_details(place_detail) == 2:
+                    elif result == 2:
                         st.error("❌ Failed to add place details")
                 else:
                     st.warning("No detailed information available")
-    def add_place_details(self,place_detail) -> int:
+    def add_place_details(self, place_detail) -> int:
         """Add the place details to the database in table 'places'. It will also sync to excel.
         
         Args:
-            place_detail: Place detail dictionary
+            place_detail: Place detail dictionary or Place model instance
             
         Returns:
             int: 0,1,2
@@ -416,8 +448,47 @@ class AddPlacePage:
             2: Failed to add place
         
         """
-        print(place_detail)
-        return 1
+        try:
+            # Import database operations
+            
+            # Initialize database
+            db = PlacesDatabase()
+            
+            # Convert to Place model if it's a dictionary
+            if isinstance(place_detail, dict):
+                try:
+                    place = Place.from_dict(place_detail)
+                except ValueError as e:
+                    self.logger.error(f"Invalid place data: {str(e)}")
+                    return 2
+            elif isinstance(place_detail, Place):
+                place = place_detail
+            else:
+                self.logger.error(f"Invalid place_detail type: {type(place_detail)}")
+                return 2
+            
+            # Check if place already exists based on id
+            existing_places = db.get_all_places()
+            if not existing_places.empty and place.id:
+                # Check for duplicates based on ID
+                duplicate_mask = (existing_places['id'] == place.id)
+                if duplicate_mask.any():
+                    self.logger.info(f"Place already exists with ID: {place.id}")
+                    return 0
+            
+            # Add place using the model-based method
+            success = db.add_place_with_model(place)
+            
+            if success:
+                self.logger.info(f"Place added successfully: {place.name}")
+                return 1
+            else:
+                self.logger.error(f"Failed to add place: {place.name}")
+                return 2
+                
+        except Exception as e:
+            self.logger.error(f"Error adding place details: {str(e)}")
+            return 2
     def test_bearer_token_demo(self):
         """Demonstrate the get_bearer_token function."""
         st.markdown("---")

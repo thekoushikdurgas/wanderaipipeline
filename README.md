@@ -130,7 +130,7 @@ The application uses PostgreSQL with a `places` table containing the following c
 | types | TEXT | Place types (e.g., restaurant, hotel) |
 | name | TEXT | Place name |
 | address | TEXT | Full address |
-| pincode | TEXT | 6-digit postal code |
+| pincode | TEXT | Postal code (max 9 digits) |
 | created_at | TIMESTAMP | Record creation timestamp |
 | updated_at | TIMESTAMP | Record update timestamp |
 
@@ -214,7 +214,7 @@ The application uses PostgreSQL with a `places` table containing the following c
   - **Types**: Categories (e.g., restaurant, hotel, tourist_attraction)
   - **Latitude**: GPS latitude (-90 to 90)
   - **Longitude**: GPS longitude (-180 to 180)
-  - **Pincode**: 6-digit postal code
+  - **Pincode**: Postal code (must be less than 10 characters)
 - Click "Add Place" to save
 
 ### OLA Maps API Testing
@@ -302,7 +302,7 @@ The application uses PostgreSQL with a `places` table containing the following c
 ## Validation Rules
 
 - **Coordinates**: Latitude must be between -90 and 90, longitude between -180 and 180
-- **Pincode**: Must be exactly 6 digits
+- **Pincode**: Must be less than 10 characters (digits only)
 - **Required Fields**: All fields are mandatory
 
 ## File Structure
@@ -410,7 +410,7 @@ This will:
 
 - **"Database connection parameters must be set"**: Check that `.env` file exists
 - **"Please fill in all required fields"**: All form fields must be completed
-- **"Please enter a valid 6-digit pincode"**: Pincode must be exactly 6 digits
+- **"Pincode must be less than 10 characters"**: Pincode length validation
 - **"Please enter valid coordinates"**: Latitude/longitude must be within valid ranges
 
 ## Database Connection Details

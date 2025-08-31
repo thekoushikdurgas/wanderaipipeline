@@ -8,6 +8,7 @@ for better maintainability, debugging, and scalability.
 import streamlit as st
 import sys
 from pathlib import Path
+import pandas as pd
 
 # Add project root to Python path for imports
 project_root = Path(__file__).parent
@@ -15,7 +16,7 @@ sys.path.insert(0, str(project_root))
 
 # Import configuration and utilities
 try:
-    from config.settings import (
+    from utils.settings import (
         ui_config, db_config, excel_config, AppConstants, 
         validate_configuration
     )
@@ -28,7 +29,7 @@ try:
     from utils.validators import PlaceValidator
     from ui.components import DataTable, PlaceForm, TableControls
     from ui.add_place_page import render_add_place_page
-    from analytics.dashboard import DashboardRenderer
+    from ui.dashboard import DashboardRenderer
     from api_testing.ola_maps_api_tester import APITestingUI
 except ImportError as e:
     st.error(f"""
@@ -269,7 +270,10 @@ class PlaceOperations:
                 form_data['types'],
                 form_data['name'],
                 form_data['address'],
-                form_data['pincode']
+                form_data['pincode'],
+                form_data.get('rating', 0.0),
+                form_data.get('followers', 0.0),
+                form_data.get('country', 'Unknown')
             ),
             "add_place_operation",
             default_return=False
@@ -294,80 +298,83 @@ class PlaceOperations:
         Returns:
             bool: True if successful
         """
-        place_id = form_data['place_id']
-        self.logger.info("Processing edit place request", place_id=place_id)
+        # id = 
+        # self.logger.info("Processing edit place request", id=id)
         
         success = safe_execute(
             lambda: self.db.update_place(
-                place_id,
+                form_data['id'],
                 form_data['latitude'],
                 form_data['longitude'],
                 form_data['types'], 
                 form_data['name'],
                 form_data['address'],
-                form_data['pincode']
+                form_data['pincode'],
+                form_data.get('rating'),
+                form_data.get('followers'),
+                form_data.get('country')
             ),
             "edit_place_operation",
             default_return=False
         )
         
         if success:
-            self.logger.info("Place updated successfully", place_id=place_id)
+            self.logger.info("Place updated successfully", id=id)
             ApplicationState.clear_edit_mode()
             return True
         else:
-            self.logger.error("Failed to update place", place_id=place_id)
+            self.logger.error("Failed to update place", id=id)
             return False
     
     @handle_errors(show_user_message=True)
-    def handle_delete_place(self, place_id: int) -> bool:
+    def handle_delete_place(self, id: str) -> bool:
         """
         Handle deleting a place.
         
         Args:
-            place_id: ID of place to delete
+            id: ID of place to delete
             
         Returns:
             bool: True if successful
         """
-        self.logger.info("Processing delete place request", place_id=place_id)
+        self.logger.info("Processing delete place request", id=id)
         
         success = safe_execute(
-            lambda: self.db.delete_place(place_id),
+            lambda: self.db.delete_place(id),
             "delete_place_operation", 
             default_return=False
         )
         
         if success:
-            self.logger.info("Place deleted successfully", place_id=place_id)
+            self.logger.info("Place deleted successfully", id=id)
             return True
         else:
-            self.logger.error("Failed to delete place", place_id=place_id)
+            self.logger.error("Failed to delete place", id=id)
             return False
     
     @handle_errors(show_user_message=False)
-    def get_place_for_editing(self, place_id: int) -> dict:
+    def get_place_for_editing(self, id: str) -> dict:
         """
         Get place data for editing.
         
         Args:
-            place_id: ID of place to edit
+            id: ID of place to edit
             
         Returns:
             dict: Place data or None if not found
         """
-        self.logger.debug("Retrieving place for editing", place_id=place_id)
+        self.logger.debug("Retrieving place for editing", id=id)
         
         place_data = safe_execute(
-            lambda: self.db.get_place_by_id(place_id),
+            lambda: self.db.get_placea_by_id(id),
             "get_place_for_edit",
             default_return=None
         )
         
         if place_data:
-            self.logger.debug("Place data retrieved successfully", place_id=place_id)
+            self.logger.debug("Place data retrieved successfully", id=id)
         else:
-            self.logger.warning("Place not found for editing", place_id=place_id)
+            self.logger.warning("Place not found for editing", id=id)
         
         return place_data
 
@@ -566,8 +573,8 @@ def main():
             render_view_all_page(db, place_ops)
         elif selected_page == AppConstants.PAGES["ADD_NEW"]:
             render_add_place_page(place_ops)
-        elif selected_page == AppConstants.PAGES["SEARCH"]:
-            render_search_page(db, place_ops)
+        # elif selected_page == AppConstants.PAGES["SEARCH"]:
+        #     render_search_page(db, place_ops)
         elif selected_page == AppConstants.PAGES["ANALYTICS"]:
             render_analytics_page(db)
         elif selected_page == AppConstants.PAGES["API_TESTING"]:
@@ -630,31 +637,67 @@ def render_view_all_page(db: PlacesDatabase, place_ops: PlaceOperations):
         st.error("Failed to load places data")
         return
     
+    # Display summary statistics
+    if not places_df.empty:
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Places", len(places_df))
+        with col2:
+            unique_types = places_df['types'].nunique() if 'types' in places_df.columns else 0
+            st.metric("Unique Types", unique_types)
+        with col3:
+            unique_countries = places_df['country'].nunique() if 'country' in places_df.columns else 0
+            st.metric("Countries", unique_countries)
+        with col4:
+            avg_rating = places_df['rating'].mean() if 'rating' in places_df.columns else 0
+            st.metric("Avg Rating", f"{avg_rating:.1f}" if avg_rating > 0 else "N/A")
+        
+        st.markdown("---")
+    
     # Define action handlers
-    def handle_edit(place_id: int):
-        st.session_state[AppConstants.SESSION_KEYS["EDIT_PLACE_ID"]] = place_id
+    def handle_edit(id: str):
+        st.session_state[AppConstants.SESSION_KEYS["EDIT_PLACE_ID"]] = id
         st.session_state[AppConstants.SESSION_KEYS["EDIT_MODE"]] = True
         st.rerun()
     
-    def handle_delete(place_id: int):
-        if place_ops.handle_delete_place(place_id):
+    def handle_delete(id: str):
+        if place_ops.handle_delete_place(id):
             st.success("Place deleted successfully!")
             st.rerun()
         else:
             st.error("Failed to delete place")
     
-    def handle_view(place_id: int):
-        place_data = place_ops.get_place_for_editing(place_id)
+    def handle_view(id: str):
+        place_data = place_ops.get_place_for_editing(id)
         if place_data:
+            # Format timestamps for better display
+            created_at = place_data.get('created_at', 'N/A')
+            if created_at != 'N/A':
+                try:
+                    created_at = pd.to_datetime(created_at).strftime('%Y-%m-%d %H:%M:%S')
+                except:
+                    pass
+                    
+            updated_at = place_data.get('updated_at', 'N/A')
+            if updated_at != 'N/A':
+                try:
+                    updated_at = pd.to_datetime(updated_at).strftime('%Y-%m-%d %H:%M:%S')
+                except:
+                    pass
+            
             st.info(f"""
-            **Place Details:**
-            - **ID:** {place_data['place_id']}
-            - **Name:** {place_data['name']}
-            - **Type:** {place_data['types']}
-            - **Address:** {place_data['address']}
-            - **Coordinates:** {place_data['latitude']:.6f}, {place_data['longitude']:.6f}
-            - **Pincode:** {place_data['pincode']}
-            - **Created:** {place_data.get('created_at', 'N/A')}
+            **Complete Place Details:**
+            - **ID:** {place_data.get('id', 'N/A')}
+            - **Name:** {place_data.get('name', 'N/A')}
+            - **Type:** {place_data.get('types', 'N/A')}
+            - **Address:** {place_data.get('address', 'N/A')}
+            - **Coordinates:** {f"{place_data.get('latitude', 'N/A'):.6f}, {place_data.get('longitude', 'N/A'):.6f}" if place_data.get('latitude') is not None and place_data.get('longitude') is not None else 'N/A'}
+            - **Pincode:** {place_data.get('pincode', 'N/A')}
+            - **Rating:** {place_data.get('rating', 'N/A')}
+            - **Followers:** {place_data.get('followers', 'N/A')}
+            - **Country:** {place_data.get('country', 'N/A')}
+            - **Created:** {created_at}
+            - **Updated:** {updated_at}
             """)
     
     # Check if in edit mode
@@ -693,56 +736,56 @@ def render_add_place_page(place_ops: PlaceOperations):
     render_add_place_page_module(place_ops)
 
 
-def render_search_page(db: PlacesDatabase, place_ops: PlaceOperations):
-    """Render the search places page."""
-    logger.debug("Rendering search page")
+# def render_search_page(db: PlacesDatabase, place_ops: PlaceOperations):
+#     """Render the search places page."""
+#     logger.debug("Rendering search page")
     
-    st.header("🔍 Search Places")
+#     st.header("🔍 Search Places")
     
-    col1, col2 = st.columns(2)
+#     col1, col2 = st.columns(2)
     
-    with col1:
-        search_term = st.text_input(
-            "Search by name, type, or address:", 
-            placeholder="Enter search term...",
-            help="Search across place names, types, and addresses"
-        )
-        if st.button("🔍 Search", type="primary"):
-            if search_term:
-                st.session_state[AppConstants.SESSION_KEYS["SEARCH_TERM"]] = search_term
-                ApplicationState.reset_pagination()
-                st.rerun()
-            else:
-                st.warning("Please enter a search term")
+#     with col1:
+#         search_term = st.text_input(
+#             "Search by name, type, or address:", 
+#             placeholder="Enter search term...",
+#             help="Search across place names, types, and addresses"
+#         )
+#         if st.button("🔍 Search", type="primary"):
+#             if search_term:
+#                 st.session_state[AppConstants.SESSION_KEYS["SEARCH_TERM"]] = search_term
+#                 ApplicationState.reset_pagination()
+#                 st.rerun()
+#             else:
+#                 st.warning("Please enter a search term")
     
-    with col2:
-        # Type filter
-        place_types = ["All Types"] + db_config.place_types if hasattr(db_config, 'place_types') else ["All Types"]
-        selected_type = st.selectbox(
-            "Filter by type:", 
-            place_types,
-            help="Filter places by their type"
-        )
-        if st.button("🎯 Filter", type="secondary"):
-            if selected_type != "All Types":
-                # Get places by type
-                places_df, total_count = safe_execute(
-                    lambda: db.get_places_by_type_paginated(
-                        selected_type,
-                        page=st.session_state[AppConstants.SESSION_KEYS["CURRENT_PAGE"]],
-                        page_size=st.session_state[AppConstants.SESSION_KEYS["PAGE_SIZE"]],
-                        sort_by=st.session_state[AppConstants.SESSION_KEYS["SORT_BY"]],
-                        sort_order=st.session_state[AppConstants.SESSION_KEYS["SORT_ORDER"]]
-                    ),
-                    "get_places_by_type",
-                    default_return=(None, 0)
-                )
+#     with col2:
+#         # Type filter
+#         place_types = ["All Types"] + db_config.place_types if hasattr(db_config, 'place_types') else ["All Types"]
+#         selected_type = st.selectbox(
+#             "Filter by type:", 
+#             place_types,
+#             help="Filter places by their type"
+#         )
+#         if st.button("🎯 Filter", type="secondary"):
+#             if selected_type != "All Types":
+#                 # Get places by type
+#                 places_df, total_count = safe_execute(
+#                     lambda: db.get_places_by_type_paginated(
+#                         selected_type,
+#                         page=st.session_state[AppConstants.SESSION_KEYS["CURRENT_PAGE"]],
+#                         page_size=st.session_state[AppConstants.SESSION_KEYS["PAGE_SIZE"]],
+#                         sort_by=st.session_state[AppConstants.SESSION_KEYS["SORT_BY"]],
+#                         sort_order=st.session_state[AppConstants.SESSION_KEYS["SORT_ORDER"]]
+#                     ),
+#                     "get_places_by_type",
+#                     default_return=(None, 0)
+#                 )
                 
-                if places_df is not None:
-                    DataTable.render_places_table(places_df, total_count)
-            else:
-                st.session_state[AppConstants.SESSION_KEYS["SEARCH_TERM"]] = ""
-                st.rerun()
+#                 if places_df is not None:
+#                     DataTable.render_places_table(places_df, total_count)
+#             else:
+#                 st.session_state[AppConstants.SESSION_KEYS["SEARCH_TERM"]] = ""
+#                 st.rerun()
 
 
 def render_analytics_page(db: PlacesDatabase):

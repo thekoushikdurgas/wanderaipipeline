@@ -126,7 +126,7 @@ The OLA Maps API Tester has been significantly enhanced to provide a better user
 
 ### File Structure
 
-```
+```txt
 api_testing/
 ├── ola_maps_api_tester.py    # Main API tester module
 └── __init__.py

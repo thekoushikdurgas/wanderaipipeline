@@ -35,7 +35,7 @@ except ImportError:
     
     def get_optimized_dtypes():
         return {
-            'place_id': 'int32',
+            'id': 'int32',
             'latitude': 'float64',
             'longitude': 'float64',
             'types': 'string',

@@ -17,7 +17,7 @@ import numpy as np
 
 # Import utilities and configuration
 try:
-    from config.settings import excel_config
+    from utils.settings import excel_config
     from utils.logger import get_logger, log_performance
     from utils.error_handlers import (
         handle_errors, safe_execute, FileSystemError, 
@@ -35,8 +35,9 @@ except ImportError:
         excel_cache_timeout = 300
         auto_save_threshold = 10
         excel_columns = [
-            'place_id', 'latitude', 'longitude', 'types', 
-            'name', 'address', 'pincode', 'created_at', 'updated_at'
+            'id', 'latitude', 'longitude', 'types', 
+            'name', 'address', 'pincode', 'rating', 'followers', 'country',
+            'created_at', 'updated_at'
         ]
     
     excel_config = MockExcelConfig()
@@ -142,8 +143,8 @@ class ExcelCacheManager:
         optimized_data = data.copy()
         
         # Use numpy dtypes for better performance
-        if 'place_id' in optimized_data.columns:
-            optimized_data['place_id'] = optimized_data['place_id'].astype(np.int32)
+        if 'id' in optimized_data.columns:
+            optimized_data['id'] = optimized_data['id'].astype('string')
         if 'latitude' in optimized_data.columns:
             optimized_data['latitude'] = optimized_data['latitude'].astype(np.float64)
         if 'longitude' in optimized_data.columns:
@@ -335,7 +336,7 @@ class ExcelHandler:
                 sheet_name=self.sheet_name,
                 engine='openpyxl',
                 dtype={
-                    'place_id': np.int32,
+                    'id': 'string',
                     'latitude': np.float64,
                     'longitude': np.float64,
                     'types': 'string',
@@ -419,8 +420,8 @@ class ExcelHandler:
             df_ordered = self._convert_datetimes_to_naive(df_ordered)
             
             # Optimize data types for better performance
-            if 'place_id' in df_ordered.columns:
-                df_ordered['place_id'] = df_ordered['place_id'].astype(np.int32)
+            if 'id' in df_ordered.columns:
+                df_ordered['id'] = df_ordered['id'].astype('string')
             if 'latitude' in df_ordered.columns:
                 df_ordered['latitude'] = df_ordered['latitude'].astype(np.float64)
             if 'longitude' in df_ordered.columns:
@@ -508,7 +509,7 @@ class ExcelHandler:
         if not excel_config.enable_excel_sync:
             return True
         
-        self.logger.debug("Adding place to Excel", place_id=place_data.get('place_id'))
+        self.logger.debug("Adding place to Excel", id=place_data.get('id'))
         
         try:
             # Read current data
@@ -517,9 +518,24 @@ class ExcelHandler:
             # Create new row with optimized data types
             new_row = pd.DataFrame([place_data])
             
+            # Handle datetime fields properly to avoid dtype warnings
+            for datetime_field in ['created_at', 'updated_at']:
+                if datetime_field in new_row.columns:
+                    value = new_row[datetime_field].iloc[0]
+                    if value is not None:
+                        # Convert timezone-aware datetime to timezone-naive
+                        if hasattr(value, 'tzinfo') and value.tzinfo is not None:
+                            value = value.replace(tzinfo=None)
+                        # Ensure it's a pandas-compatible datetime
+                        try:
+                            new_row[datetime_field] = pd.to_datetime(value)
+                        except:
+                            # If conversion fails, use current time
+                            new_row[datetime_field] = pd.Timestamp.now()
+            
             # Optimize data types for the new row
-            if 'place_id' in new_row.columns:
-                new_row['place_id'] = new_row['place_id'].astype(np.int32)
+            if 'id' in new_row.columns:
+                new_row['id'] = new_row['id'].astype('string')
             if 'latitude' in new_row.columns:
                 new_row['latitude'] = new_row['latitude'].astype(np.float64)
             if 'longitude' in new_row.columns:
@@ -536,12 +552,12 @@ class ExcelHandler:
             return False
     
     @handle_errors(show_user_message=False)
-    def update_place_in_excel(self, place_id: int, updated_data: Dict[str, Any]) -> bool:
+    def update_place_in_excel(self, id: str, updated_data: Dict[str, Any]) -> bool:
         """
         Update a specific place in Excel file using vectorized operations.
         
         Args:
-            place_id: ID of place to update
+            id: ID of place to update
             updated_data: Updated place data
             
         Returns:
@@ -550,24 +566,35 @@ class ExcelHandler:
         if not excel_config.enable_excel_sync:
             return True
         
-        self.logger.debug("Updating place in Excel", place_id=place_id)
+        self.logger.debug("Updating place in Excel", id=id)
         
         try:
             # Read current data
             df = self.read_excel_data()
             
             # Use vectorized operations for finding and updating
-            mask = df['place_id'] == place_id
+            mask = df['id'] == id
             if mask.any():
                 # Update the row using vectorized operations
                 for key, value in updated_data.items():
                     if key in df.columns:
+                        # Handle datetime fields properly to avoid dtype warnings
+                        if key in ['created_at', 'updated_at'] and value is not None:
+                            # Convert timezone-aware datetime to timezone-naive
+                            if hasattr(value, 'tzinfo') and value.tzinfo is not None:
+                                value = value.replace(tzinfo=None)
+                            # Ensure it's a pandas-compatible datetime
+                            try:
+                                value = pd.to_datetime(value)
+                            except:
+                                # If conversion fails, use current time
+                                value = pd.Timestamp.now()
                         df.loc[mask, key] = value
                 
                 # Write back to Excel
                 return self.write_excel_data(df)
             else:
-                self.logger.warning("Place not found in Excel", place_id=place_id)
+                self.logger.warning("Place not found in Excel", id=id)
                 return False
             
         except Exception as e:
@@ -575,12 +602,12 @@ class ExcelHandler:
             return False
     
     @handle_errors(show_user_message=False)
-    def delete_place_from_excel(self, place_id: int) -> bool:
+    def delete_place_from_excel(self, id: str) -> bool:
         """
         Delete a specific place from Excel file using vectorized operations.
         
         Args:
-            place_id: ID of place to delete
+            id: ID of place to delete
             
         Returns:
             bool: True if successful
@@ -588,23 +615,23 @@ class ExcelHandler:
         if not excel_config.enable_excel_sync:
             return True
         
-        self.logger.debug("Deleting place from Excel", place_id=place_id)
+        self.logger.debug("Deleting place from Excel", id=id)
         
         try:
             # Read current data
             df = self.read_excel_data()
             
             # Use vectorized operations for deletion
-            mask = df['place_id'] != place_id
+            mask = df['id'] != id
             updated_df = df[mask]
             
             if len(updated_df) < len(df):
                 # Write back to Excel
                 result = self.write_excel_data(updated_df)
-                self.logger.info("Place deleted from Excel", place_id=place_id)
+                self.logger.info("Place deleted from Excel", id=id)
                 return result
             else:
-                self.logger.warning("Place not found in Excel for deletion", place_id=place_id)
+                self.logger.warning("Place not found in Excel for deletion", id=id)
                 return False
             
         except Exception as e:

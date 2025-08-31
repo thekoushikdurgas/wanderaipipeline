@@ -17,7 +17,7 @@ from pathlib import Path
 
 # Import configuration
 try:
-    from config.settings import logging_config
+    from utils.settings import logging_config
 except ImportError:
     # Fallback configuration if config module is not available
     class FallbackLoggingConfig:

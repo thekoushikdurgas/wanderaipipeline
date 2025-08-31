@@ -14,7 +14,7 @@ from datetime import datetime
 
 # Import utilities and configuration
 try:
-    from config.settings import ui_config, AppConstants
+    from utils.settings import ui_config, AppConstants
     from utils.logger import get_logger
     from utils.validators import PlaceValidator, ValidationResult
     from utils.error_handlers import handle_errors, safe_execute
@@ -256,10 +256,16 @@ class DataTable:
             width='stretch',
             hide_index=True,
             column_config={
+                "ID": st.column_config.NumberColumn("ID", width="small"),
                 "Name": st.column_config.TextColumn("Name", width="medium"),
                 "Type": st.column_config.TextColumn("Type", width="small"),
                 "Address": st.column_config.TextColumn("Address", width="large"),
                 "Pincode": st.column_config.TextColumn("Pincode", width="small"),
+                "Rating": st.column_config.NumberColumn("Rating", width="small", format="%.1f"),
+                "Followers": st.column_config.NumberColumn("Followers", width="small", format=","),
+                "Country": st.column_config.TextColumn("Country", width="small"),
+                "Created": st.column_config.TextColumn("Created", width="medium"),
+                "Updated": st.column_config.TextColumn("Updated", width="medium"),
                 "Coordinates": st.column_config.TextColumn("Coordinates", width="medium")
             }
         )
@@ -284,7 +290,15 @@ class DataTable:
         logger.debug("Preparing display dataframe", columns=list(places_df.columns))
         
         # Use vectorized operations for better performance
-        display_df = places_df[['name', 'types', 'address', 'latitude', 'longitude', 'pincode']].copy()
+        # Include all columns from the complete database schema
+        schema_columns = [
+            'id', 'name', 'types', 'address', 'latitude', 'longitude', 
+            'pincode', 'rating', 'followers', 'country', 'created_at', 'updated_at'
+        ]
+        
+        # Filter to only include columns that exist in the dataframe
+        available_columns = [col for col in schema_columns if col in places_df.columns]
+        display_df = places_df[available_columns].copy()
         
         # Vectorized coordinate formatting using numpy
         lat_array = display_df['latitude'].to_numpy()
@@ -304,8 +318,38 @@ class DataTable:
         # Drop individual coordinate columns
         display_df = display_df.drop(['latitude', 'longitude'], axis=1)
         
+        # Format rating and followers for better display
+        if 'rating' in display_df.columns:
+            display_df['rating'] = display_df['rating'].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "N/A")
+        if 'followers' in display_df.columns:
+            display_df['followers'] = display_df['followers'].apply(lambda x: f"{int(x):,}" if pd.notna(x) else "N/A")
+        
+        # Format timestamps for better display
+        if 'created_at' in display_df.columns:
+            display_df['created_at'] = display_df['created_at'].apply(
+                lambda x: pd.to_datetime(x).strftime('%Y-%m-%d %H:%M') if pd.notna(x) else "N/A"
+            )
+        if 'updated_at' in display_df.columns:
+            display_df['updated_at'] = display_df['updated_at'].apply(
+                lambda x: pd.to_datetime(x).strftime('%Y-%m-%d %H:%M') if pd.notna(x) else "N/A"
+            )
+        
         # Rename columns for better display
-        display_df.columns = ['Name', 'Type', 'Address', 'Pincode', 'Coordinates']
+        column_mapping = {
+            'id': 'ID',
+            'name': 'Name',
+            'types': 'Type', 
+            'address': 'Address',
+            'pincode': 'Pincode',
+            'rating': 'Rating',
+            'followers': 'Followers',
+            'country': 'Country',
+            'created_at': 'Created',
+            'updated_at': 'Updated',
+            'Coordinates': 'Coordinates'
+        }
+        
+        display_df.columns = [column_mapping.get(col, col) for col in display_df.columns]
         
         return display_df
     
@@ -373,13 +417,13 @@ class DataTable:
         st.markdown("### 🔧 Actions")
         
         # Use vectorized operations for better performance
-        place_ids = places_df['place_id'].to_numpy()
+        ids = places_df['id'].to_numpy()
         names = places_df['name'].to_numpy()
         types = places_df['types'].to_numpy()
         
         # Create expandable sections for each place
         for i in range(len(places_df)):
-            place_id = place_ids[i]
+            id = ids[i]
             name = names[i]
             place_type = types[i]
             
@@ -391,38 +435,51 @@ class DataTable:
                     st.write(f"**Address:** {places_df.iloc[i]['address']}")
                     st.write(f"**Coordinates:** {places_df.iloc[i]['latitude']:.6f}, {places_df.iloc[i]['longitude']:.6f}")
                     st.write(f"**Pincode:** {places_df.iloc[i]['pincode']}")
+                    
+                    # Display additional fields if they exist
+                    if 'rating' in places_df.columns:
+                        rating = places_df.iloc[i]['rating']
+                        st.write(f"**Rating:** {rating:.1f}/5.0" if pd.notna(rating) else "**Rating:** N/A")
+                    
+                    if 'followers' in places_df.columns:
+                        followers = places_df.iloc[i]['followers']
+                        st.write(f"**Followers:** {int(followers):,}" if pd.notna(followers) else "**Followers:** N/A")
+                    
+                    if 'country' in places_df.columns:
+                        country = places_df.iloc[i]['country']
+                        st.write(f"**Country:** {country}" if pd.notna(country) and country else "**Country:** Unknown")
                 
                 with col2:
                     # Edit button
-                    if st.button("✏️ Edit", key=f"edit_btn_{place_id}", type="primary"):
-                        logger.debug("Edit button clicked", place_id=place_id)
+                    if st.button("✏️ Edit", key=f"edit_btn_{id}", type="primary"):
+                        logger.debug("Edit button clicked", id=id)
                         if on_edit:
                             safe_execute(
-                                lambda: on_edit(place_id),
-                                f"edit_place_{place_id}",
-                                context={"place_id": place_id, "action": "edit"}
+                                lambda: on_edit(id),
+                                f"edit_place_{id}",
+                                context={"id": id, "action": "edit"}
                             )
                 
                 with col3:
                     # Delete button
-                    if st.button("🗑️ Delete", key=f"delete_btn_{place_id}", type="secondary"):
-                        logger.debug("Delete button clicked", place_id=place_id)
+                    if st.button("🗑️ Delete", key=f"delete_btn_{id}", type="secondary"):
+                        logger.debug("Delete button clicked", id=id)
                         if on_delete:
                             safe_execute(
-                                lambda: on_delete(place_id),
-                                f"delete_place_{place_id}",
-                                context={"place_id": place_id, "action": "delete"}
+                                lambda: on_delete(id),
+                                f"delete_place_{id}",
+                                context={"id": id, "action": "delete"}
                             )
                 
                 with col4:
                     # View details button
-                    if st.button("👁️ View", key=f"view_btn_{place_id}"):
-                        logger.debug("View button clicked", place_id=place_id)
+                    if st.button("👁️ View", key=f"view_btn_{id}"):
+                        logger.debug("View button clicked", id=id)
                         if on_view:
                             safe_execute(
-                                lambda: on_view(place_id),
-                                f"view_place_{place_id}",
-                                context={"place_id": place_id, "action": "view"}
+                                lambda: on_view(id),
+                                f"view_place_{id}",
+                                context={"id": id, "action": "view"}
                             )
 
 
@@ -485,9 +542,41 @@ class PlaceForm:
                 )
                 pincode = st.text_input(
                     "Pincode *", 
-                    placeholder="6-digit pincode", 
-                    max_chars=6,
-                    help="Enter 6-digit postal code"
+                    placeholder="Enter pincode (max 9 digits)", 
+                    max_chars=9,
+                    help="Enter postal code (must be less than 10 characters)"
+                )
+            
+            # Additional Information
+            col3, col4, col5 = st.columns(3)
+            
+            with col3:
+                rating = st.number_input(
+                    "Rating", 
+                    min_value=0.0, 
+                    max_value=5.0, 
+                    value=0.0, 
+                    step=0.1, 
+                    format="%.1f",
+                    help="Place rating from 0.0 to 5.0"
+                )
+            
+            with col4:
+                followers = st.number_input(
+                    "Followers", 
+                    min_value=0.0, 
+                    value=0.0, 
+                    step=1.0, 
+                    format="%.0f",
+                    help="Number of followers"
+                )
+            
+            with col5:
+                country = st.text_input(
+                    "Country", 
+                    placeholder="Enter country name", 
+                    value="Unknown",
+                    help="Country where the place is located"
                 )
             
             # Submit button
@@ -504,7 +593,10 @@ class PlaceForm:
                     'types': types,
                     'latitude': latitude,
                     'longitude': longitude,
-                    'pincode': pincode
+                    'pincode': pincode,
+                    'rating': rating,
+                    'followers': followers,
+                    'country': country
                 }
                 
                 # Validate and submit
@@ -526,9 +618,9 @@ class PlaceForm:
             on_submit: Callback function when form is submitted
             on_cancel: Callback function when form is cancelled
         """
-        logger.debug("Rendering edit place form", place_id=place_data.get('place_id'))
+        logger.debug("Rendering edit place form", id=place_data.get('id'))
         
-        place_id = place_data['place_id']
+        id = place_data['id']
         
         # Enhanced Edit Place Header
         st.markdown("""
@@ -547,7 +639,7 @@ class PlaceForm:
         st.markdown("---")
         st.markdown("### ✏️ Edit Form")
         
-        with st.form(f"edit_place_form_{place_id}"):
+        with st.form(f"edit_place_form_{id}"):
             st.markdown("**Please update the place information:**")
             
             col1, col2 = st.columns(2)
@@ -557,20 +649,20 @@ class PlaceForm:
                 edit_name = st.text_input(
                     "Place Name *", 
                     value=place_data['name'], 
-                    key=f"edit_name_{place_id}",
+                    key=f"edit_name_{id}",
                     help="Enter the name of the place"
                 )
                 edit_address = st.text_area(
                     "Address *", 
                     value=place_data['address'], 
-                    key=f"edit_address_{place_id}",
+                    key=f"edit_address_{id}",
                     help="Enter the full address of the place", 
                     height=100
                 )
                 edit_types = st.text_input(
                     "Types *", 
                     value=place_data['types'], 
-                    key=f"edit_types_{place_id}",
+                    key=f"edit_types_{id}",
                     help="Enter place types (e.g., restaurant, hotel, tourist_attraction)"
                 )
             
@@ -582,7 +674,7 @@ class PlaceForm:
                     max_value=90.0,
                     value=float(place_data['latitude']), 
                     format="%.6f",
-                    key=f"edit_lat_{place_id}",
+                    key=f"edit_lat_{id}",
                     help="Latitude must be between -90 and 90"
                 )
                 edit_longitude = st.number_input(
@@ -591,15 +683,42 @@ class PlaceForm:
                     max_value=180.0,
                     value=float(place_data['longitude']), 
                     format="%.6f",
-                    key=f"edit_lon_{place_id}",
+                    key=f"edit_lon_{id}",
                     help="Longitude must be between -180 and 180"
                 )
                 edit_pincode = st.text_input(
                     "Pincode *", 
                     value=place_data['pincode'], 
-                    max_chars=6,
-                    key=f"edit_pincode_{place_id}",
-                    help="Enter 6-digit postal code"
+                    max_chars=9,
+                    key=f"edit_pincode_{id}",
+                    help="Enter postal code (must be less than 10 characters)"
+                )
+                
+                # New fields for additional place data
+                edit_rating = st.number_input(
+                    "Rating",
+                    min_value=0.0,
+                    max_value=5.0,
+                    value=float(place_data.get('rating', 0.0)),
+                    step=0.1,
+                    format="%.1f",
+                    key=f"edit_rating_{id}",
+                    help="Place rating (0.0 - 5.0)"
+                )
+                edit_followers = st.number_input(
+                    "Followers",
+                    min_value=0.0,
+                    value=float(place_data.get('followers', 0.0)),
+                    step=1.0,
+                    format="%.0f",
+                    key=f"edit_followers_{id}",
+                    help="Number of followers"
+                )
+                edit_country = st.text_input(
+                    "Country",
+                    value=place_data.get('country', 'Unknown'),
+                    key=f"edit_country_{id}",
+                    help="Country name"
                 )
             
             # Action buttons
@@ -615,28 +734,31 @@ class PlaceForm:
             
             with col2:
                 if st.form_submit_button("❌ Cancel", help="Cancel editing and return to view mode"):
-                    logger.debug("Edit form cancelled", place_id=place_id)
+                    logger.debug("Edit form cancelled", id=id)
                     if on_cancel:
-                        safe_execute(on_cancel, f"cancel_edit_{place_id}")
+                        safe_execute(on_cancel, f"cancel_edit_{id}")
                     st.rerun()
             
             with col3:
                 if st.form_submit_button("🔄 Reset", help="Reset all fields to original values"):
-                    logger.debug("Edit form reset", place_id=place_id)
+                    logger.debug("Edit form reset", id=id)
                     st.rerun()
             
             if submitted:
-                logger.debug("Edit place form submitted", place_id=place_id)
+                logger.debug("Edit place form submitted", id=id)
                 
                 # Prepare form data with optimized validation
                 form_data = {
-                    'place_id': place_id,
+                    'id': id,
                     'name': edit_name,
                     'address': edit_address,
                     'types': edit_types,
                     'latitude': edit_latitude,
                     'longitude': edit_longitude,
-                    'pincode': edit_pincode
+                    'pincode': edit_pincode,
+                    'rating': edit_rating,
+                    'followers': edit_followers,
+                    'country': edit_country
                 }
                 
                 # Validate and submit
@@ -659,11 +781,18 @@ class PlaceForm:
         
         with col2:
             created_at = place_data.get('created_at', 'Unknown')
+            rating = place_data.get('rating', 0.0)
+            followers = place_data.get('followers', 0.0)
+            country = place_data.get('country', 'Unknown')
+            
             st.info(f"""
             **Location Details:**
             - **Latitude:** {place_data['latitude']:.6f}
             - **Longitude:** {place_data['longitude']:.6f}
             - **Pincode:** {place_data['pincode']}
+            - **Rating:** {rating:.1f}/5.0
+            - **Followers:** {followers:.0f}
+            - **Country:** {country}
             - **Created:** {created_at}
             """)
     
