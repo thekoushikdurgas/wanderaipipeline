@@ -321,14 +321,14 @@ class AddPlacePage:
                                         latlongs.to_csv("utils/pincodes.csv", index=False)
                                         self.predictions_json(retry_response["predictions"],latlongs.loc[latlong_idx],types)
                                     elif "error_message" in retry_response:
-                                        st.error(f"API Error: {retry_response["error_message"]}")
+                                        st.error(f"API Error: {retry_response['error_message']}")
                                 else:
                                     st.error(f"❌ Retry failed: {retry_result.get('error', 'Unknown error')}")
                             else:
                                 st.error(f"❌ Failed to refresh bearer token: {token_result.get('error', 'Unknown error')}")
                                 st.json(token_result)
                         elif response_data["error_message"] != "":
-                            st.error(f"API Error: {response_data["error_message"]}")
+                            st.error(f"API Error: {response_data['error_message']}")
                     except json.JSONDecodeError:
                         st.text(response_data)
                 else:
@@ -354,7 +354,7 @@ class AddPlacePage:
         for prediction in predictions:
                 existing_place = Placesdb.get_place_by_id(prediction["place_id"])
                 if existing_place is not None:
-                    logger.info(f"Place already exists with ID: {prediction["place_id"]}")
+                    logger.info(f"Place already exists with ID: {prediction['place_id']}")
                     break
                 place_data = self.place_details(prediction["place_id"])
                 result = place_data["data"]["result"]
@@ -386,7 +386,7 @@ class AddPlacePage:
                     # logger.info(f"Place detail: {place_detail}")
                     result = self.add_place_details(place_detail)
                     if result == 1:
-                        with st.expander(f"📍 {prediction["place_id"]}", expanded=False):
+                        with st.expander(f"📍 {prediction['place_id']}", expanded=False):
                             st.json(place_detail.to_dict())
                             st.success("🎉 Place details added successfully!")
                     elif result == 2:

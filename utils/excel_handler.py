@@ -290,16 +290,19 @@ class ExcelHandler:
         """
         datetime_columns = ['created_at', 'updated_at']
         for col in datetime_columns:
-            if col in df.columns and df[col].dt.tz is not None:
-                df[col] = df[col].dt.tz_localize(None)
-            elif col in df.columns and df[col].dtype == 'object':
-                # Try to parse as datetime if it's an object type
-                try:
-                    df[col] = pd.to_datetime(df[col], errors='coerce')
+            if col in df.columns:
+                # Check if column is datetime type before accessing .dt
+                if pd.api.types.is_datetime64_any_dtype(df[col]):
                     if df[col].dt.tz is not None:
                         df[col] = df[col].dt.tz_localize(None)
-                except Exception:
-                    pass  # Keep as object if datetime parsing fails
+                elif df[col].dtype == 'object':
+                    # Try to parse as datetime if it's an object type
+                    try:
+                        df[col] = pd.to_datetime(df[col], errors='coerce')
+                        if pd.api.types.is_datetime64_any_dtype(df[col]) and df[col].dt.tz is not None:
+                            df[col] = df[col].dt.tz_localize(None)
+                    except Exception:
+                        pass  # Keep as object if datetime parsing fails
         return df
     
     @handle_errors(show_user_message=False)
