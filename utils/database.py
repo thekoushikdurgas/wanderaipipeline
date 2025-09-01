@@ -232,7 +232,7 @@ class PlacesDatabase:
                 # Create the places table with comprehensive schema
                 create_table_sql = """
                 CREATE TABLE IF NOT EXISTS places (
-                    id str PRIMARY KEY,
+                    id TEXT PRIMARY KEY,
                     latitude DECIMAL(10, 8) NOT NULL CHECK (latitude >= -90 AND latitude <= 90),
                     longitude DECIMAL(11, 8) NOT NULL CHECK (longitude >= -180 AND longitude <= 180),
                     types TEXT NOT NULL CHECK (LENGTH(types) > 0),
@@ -242,6 +242,7 @@ class PlacesDatabase:
                     rating REAL DEFAULT 0.0,
                     followers REAL DEFAULT 0.0,
                     country VARCHAR(100) DEFAULT 'Unknown',
+                    description TEXT NOT NULL CHECK (LENGTH(description) > 0),
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
                 );
@@ -346,6 +347,10 @@ class PlacesDatabase:
                 name,
                 address,
                 pincode,
+                rating,
+                followers,
+                country,
+                description,
                 created_at,
                 updated_at
             FROM places 
@@ -366,7 +371,11 @@ class PlacesDatabase:
                     'types': 'string',
                     'name': 'string',
                     'address': 'string',
-                    'pincode': 'string'
+                    'pincode': 'string',
+                    'rating': np.float32,
+                    'followers': np.float32,
+                    'country': 'string',
+                    'description': 'string'
                 }
             )
             
@@ -446,7 +455,8 @@ class PlacesDatabase:
                 WHERE (name ILIKE %(search_term)s 
                        OR types ILIKE %(search_term)s 
                        OR address ILIKE %(search_term)s
-                       OR pincode ILIKE %(search_term)s)
+                       OR pincode ILIKE %(search_term)s
+                       OR description ILIKE %(search_term)s)
                 """
                 params['search_term'] = f'%{search_term}%'
                 logger.debug("Applied search filter", search_term=search_term[:50])
@@ -483,6 +493,10 @@ class PlacesDatabase:
                 name,
                 address,
                 pincode,
+                rating,
+                followers,
+                country,
+                description,
                 created_at,
                 updated_at
             {base_query} {where_clause} 
@@ -645,7 +659,7 @@ class PlacesDatabase:
     @log_performance("add_place")
     def add_place(self,id: str, latitude: float, longitude: float, types: str, 
                   name: str, address: str, pincode: str, rating: float = 0.0, 
-                  followers: float = 0.0, country: str = "Unknown") -> bool:
+                  followers: float = 0.0, country: str = "Unknown", description: str = "") -> bool:
         """
         Add a new place to the database with Excel sync.
         Optimized with numpy for faster data validation.
@@ -661,6 +675,7 @@ class PlacesDatabase:
             rating: Place rating (0.0 to 5.0, default 0.0)
             followers: Number of followers (default 0.0)
             country: Country name (default "Unknown")
+            description: Place description (default "")
             
         Returns:
             bool: True if successful
@@ -680,8 +695,8 @@ class PlacesDatabase:
             with self.engine.connect() as conn:
                 # Insert and get the new place ID
                 insert_sql = """
-                INSERT INTO places (id,latitude, longitude, types, name, address, pincode, rating, followers, country)
-                VALUES (:id, :latitude, :longitude, :types, :name, :address, :pincode, :rating, :followers, :country)
+                INSERT INTO places (id,latitude, longitude, types, name, address, pincode, rating, followers, country, description)
+                VALUES (:id, :latitude, :longitude, :types, :name, :address, :pincode, :rating, :followers, :country, :description)
                 RETURNING id, created_at, updated_at
                 """
                 
@@ -695,7 +710,8 @@ class PlacesDatabase:
                     'pincode': pincode,
                     'rating': float(rating),
                     'followers': float(followers),
-                    'country': str(country)
+                    'country': str(country),
+                    'description': str(description)
                 })
                 
                 # Get the inserted record details
@@ -716,6 +732,7 @@ class PlacesDatabase:
                             'rating': float(rating),
                             'followers': float(followers),
                             'country': str(country),
+                            'description': str(description),
                             'created_at': created_at,
                             'updated_at': updated_at
                         }
@@ -776,6 +793,9 @@ class PlacesDatabase:
             if not country or not country.strip():
                 country = 'Unknown'
             
+            # Extract description field
+            description = place_data.get('description', '')
+            
             # Call the main add_place method
             return self.add_place(
                 id=str(place_data['id']),
@@ -787,7 +807,8 @@ class PlacesDatabase:
                 pincode=place_data['pincode'],
                 rating=rating,
                 followers=followers,
-                country=country
+                country=country,
+                description=description
             )
             
         except Exception as e:
@@ -798,7 +819,7 @@ class PlacesDatabase:
     @log_performance("update_place")
     def update_place(self, id: str, latitude: float, longitude: float, 
                     types: str, name: str, address: str, pincode: str, 
-                    rating: float = None, followers: float = None, country: str = None) -> bool:
+                    rating: float = None, followers: float = None, country: str = None, description: str = None) -> bool:
         """
         Update an existing place in the database with Excel sync.
         Optimized with numpy for faster data validation.
@@ -866,6 +887,10 @@ class PlacesDatabase:
                     update_fields.append("country = :country")
                     update_params['country'] = str(country)
                 
+                if description is not None:
+                    update_fields.append("description = :description")
+                    update_params['description'] = str(description)
+                
                 update_sql = f"""
                 UPDATE places 
                 SET {', '.join(update_fields)}
@@ -893,6 +918,7 @@ class PlacesDatabase:
                             'rating': rating if rating is not None else 0.0,
                             'followers': followers if followers is not None else 0.0,
                             'country': country if country is not None else 'Unknown',
+                            'description': description if description is not None else '',
                             'updated_at': updated_at
                         }
                         

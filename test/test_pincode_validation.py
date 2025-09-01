@@ -143,7 +143,7 @@ def test_configuration():
     print("=" * 50)
     
     try:
-        from config.settings import validation_config
+        from utils.settings import validation_config
         
         print(f"✅ Validation config loaded")
         print(f"   Pincode pattern: {validation_config.pincode_pattern}")

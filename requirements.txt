@@ -1,9 +1,9 @@
 # Core Streamlit and web framework
 streamlit>=1.28.0
-streamlit-option-menu>=0.3.6
 
 # HTTP requests for API testing
 requests>=2.31.0
+aiohttp>=3.8.0
 
 # Database connectivity and ORM
 psycopg2-binary>=2.9.7
@@ -23,20 +23,39 @@ plotly>=5.15.0
 openpyxl>=3.1.0
 xlsxwriter>=3.1.0
 
-# Logging and monitoring (optional but recommended)
+# Logging and monitoring
 colorlog>=6.7.0
 
-# Data validation (optional but recommended)
+# Data validation
 pydantic>=2.0.0
 
-# Development and testing (optional)
+# Development and testing
 pytest>=7.4.0
 pytest-cov>=4.1.0
 
-# Performance monitoring and optimization (optional)
+# Performance monitoring and optimization
 memory-profiler>=0.61.0
 psutil>=5.9.0
 
 # Additional utilities for performance
 typing-extensions>=4.7.0
 numba>=0.57.0  # For JIT compilation of numerical functions
+
+# Standard library modules (no installation needed)
+# - asyncio
+# - concurrent.futures
+# - threading
+# - functools (lru_cache)
+# - uuid
+# - json
+# - re
+# - shutil
+# - gc
+# - pathlib
+# - datetime
+# - os
+# - sys
+# - time
+# - traceback
+# - dataclasses
+# - enum

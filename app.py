@@ -265,6 +265,7 @@ class PlaceOperations:
         
         success = safe_execute(
             lambda: self.db.add_place(
+                form_data.get('id', ''),
                 form_data['latitude'],
                 form_data['longitude'], 
                 form_data['types'],
@@ -273,7 +274,8 @@ class PlaceOperations:
                 form_data['pincode'],
                 form_data.get('rating', 0.0),
                 form_data.get('followers', 0.0),
-                form_data.get('country', 'Unknown')
+                form_data.get('country', 'Unknown'),
+                form_data.get('description', '')
             ),
             "add_place_operation",
             default_return=False
@@ -312,7 +314,8 @@ class PlaceOperations:
                 form_data['pincode'],
                 form_data.get('rating'),
                 form_data.get('followers'),
-                form_data.get('country')
+                form_data.get('country'),
+                form_data.get('description')
             ),
             "edit_place_operation",
             default_return=False

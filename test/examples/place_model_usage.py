@@ -22,37 +22,27 @@ def example_basic_place_creation():
     """Example of creating a basic place."""
     print("=== Basic Place Creation ===")
     
-    # Create coordinates
-    coords = Coordinates(latitude=28.6139, longitude=77.2090)
-    
-    # Create address
-    address = PlaceAddress(
-        address="Connaught Place, New Delhi, Delhi 110001",
-        pincode="110001",
-        country="India"
-    )
-    
-    # Create rating
-    rating = PlaceRating(rating=4.5, followers=1250)
-    
-    # Create timestamps
-    timestamps = PlaceTimestamps()
-    
-    # Create the place
+    # Create the place with all core fields
     place = Place(
+        id="cp_001",
         name="Connaught Place",
         types="tourist_attraction, shopping_mall, restaurant",
-        coordinates=coords,
-        address=address,
-        rating=rating,
-        timestamps=timestamps
+        latitude=28.6139,
+        longitude=77.2090,
+        address="Connaught Place, New Delhi, Delhi 110001",
+        pincode="110001",
+        country="India",
+        rating=4.5,
+        followers=1250,
+        description="A historic circular market and tourist attraction in New Delhi"
     )
     
     print(f"Created place: {place.name}")
-    print(f"Location: {place.coordinates.latitude}, {place.coordinates.longitude}")
-    print(f"Rating: {place.rating.rating}/5.0")
-    print(f"Followers: {place.rating.followers}")
-    print(f"Country: {place.address.country}")
+    print(f"Location: {place.latitude}, {place.longitude}")
+    print(f"Rating: {place.rating}/5.0")
+    print(f"Followers: {place.followers}")
+    print(f"Country: {place.country}")
+    print(f"Description: {place.description}")
     print()
 
 
@@ -62,6 +52,7 @@ def example_place_from_dict():
     
     # Sample place data (like from API or database)
     place_data = {
+        'id': 'taj_mahal_001',
         'name': 'Taj Mahal',
         'types': 'tourist_attraction, landmark, museum',
         'latitude': 27.1751,
@@ -71,8 +62,7 @@ def example_place_from_dict():
         'country': 'India',
         'rating': 4.8,
         'followers': 5000,
-        'created_at': datetime.now(),
-        'updated_at': datetime.now()
+        'description': 'A stunning white marble mausoleum and UNESCO World Heritage site'
     }
     
     # Validate the data
@@ -86,8 +76,8 @@ def example_place_from_dict():
     
     print(f"Created place: {place.name}")
     print(f"Types: {place.types}")
-    print(f"Location: {place.coordinates.latitude}, {place.coordinates.longitude}")
-    print(f"Rating: {place.rating.rating}/5.0")
+    print(f"Location: {place.latitude}, {place.longitude}")
+    print(f"Rating: {place.rating}/5.0")
     print()
 
 
@@ -105,7 +95,8 @@ def example_place_validation():
         'pincode': '100001',
         'country': 'USA',
         'rating': 4.0,
-        'followers': 100
+        'followers': 100,
+        'description': 'A popular restaurant in New York'
     }
     
     # Invalid place data
@@ -118,7 +109,8 @@ def example_place_validation():
         'pincode': '123',  # Invalid pincode
         'country': 'USA',
         'rating': 6.0,  # Invalid rating
-        'followers': -10  # Negative followers
+        'followers': -10,  # Negative followers
+        'description': ''  # Empty description
     }
     
     # Validate valid data
@@ -153,7 +145,8 @@ def example_place_operations():
         'pincode': '100001',
         'country': 'USA',
         'rating': 4.7,
-        'followers': 2000
+        'followers': 2000,
+        'description': 'A large urban park in Manhattan'
     })
     
     place2 = Place.from_dict({
@@ -165,7 +158,8 @@ def example_place_operations():
         'pincode': '100001',
         'country': 'USA',
         'rating': 4.3,
-        'followers': 1500
+        'followers': 1500,
+        'description': 'A major commercial intersection and tourist destination'
     })
     
     # Calculate distance between places
@@ -196,6 +190,7 @@ def example_api_data_conversion():
     
     # Simulate API response data
     api_data = {
+        'id': 'eiffel_tower_001',
         'name': 'Eiffel Tower',
         'types': ['tourist_attraction', 'landmark', 'point_of_interest'],
         'geometry': {
@@ -218,19 +213,21 @@ def example_api_data_conversion():
             }
         ],
         'rating': 4.6,
-        'user_ratings_total': 3500
+        'user_ratings_total': 3500,
+        'description': 'Iconic iron lattice tower on the Champ de Mars in Paris'
     }
     
     # Convert API data to Place model
     place = create_place_from_api_data(api_data)
     
     print(f"Converted API data to place: {place.name}")
-    print(f"Location: {place.coordinates.latitude}, {place.coordinates.longitude}")
-    print(f"Address: {place.address.address}")
-    print(f"Country: {place.address.country}")
-    print(f"Pincode: {place.address.pincode}")
-    print(f"Rating: {place.rating.rating}/5.0")
-    print(f"Followers: {place.rating.followers}")
+    print(f"Location: {place.latitude}, {place.longitude}")
+    print(f"Address: {place.address}")
+    print(f"Country: {place.country}")
+    print(f"Pincode: {place.pincode}")
+    print(f"Rating: {place.rating}/5.0")
+    print(f"Followers: {place.followers}")
+    print(f"Description: {place.description}")
     print()
 
 

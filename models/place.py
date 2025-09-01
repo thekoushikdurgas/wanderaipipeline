@@ -244,22 +244,25 @@ class Place:
     """Comprehensive place model with all fields."""
     
     # Core fields
-    name: str
+    id: str
+    latitude: float
+    longitude: float
     types: str
-    coordinates: Coordinates
-    address: PlaceAddress
-    
-    # Optional fields
-    id: str = ''
-    rating: Optional[PlaceRating] = None
-    timestamps: Optional[PlaceTimestamps] = None
+    name: str
+    address: str
+    pincode: str
+    rating: float
+    followers: float
+    country: str
+    description: str
     
     def __post_init__(self):
-        """Initialize optional fields and validate data."""
-        if self.rating is None:
-            self.rating = PlaceRating()
-        if self.timestamps is None:
-            self.timestamps = PlaceTimestamps()
+        """Validate data after initialization."""
+        # Validate coordinates
+        if not (-90.0 <= self.latitude <= 90.0):
+            raise ValueError(f"Latitude must be between -90 and 90, got {self.latitude}")
+        if not (-180.0 <= self.longitude <= 180.0):
+            raise ValueError(f"Longitude must be between -180 and 180, got {self.longitude}")
         
         # Validate name
         if not self.name or not self.name.strip():
@@ -268,56 +271,50 @@ class Place:
         # Validate types
         if not self.types or not self.types.strip():
             raise ValueError("Place types cannot be empty")
+        
+        # Validate address
+        if not self.address or not self.address.strip():
+            raise ValueError("Address cannot be empty")
+        
+        # Validate pincode
+        if not self.pincode or not self.pincode.strip():
+            raise ValueError("Pincode cannot be empty")
+        if len(self.pincode) >= 10:
+            raise ValueError("Pincode must be less than 10 characters")
+        
+        # Validate rating
+        if not (0.0 <= self.rating <= 5.0):
+            raise ValueError(f"Rating must be between 0.0 and 5.0, got {self.rating}")
+        
+        # Validate followers
+        if self.followers < 0:
+            raise ValueError(f"Followers must be non-negative, got {self.followers}")
+        
+        # Validate country
+        if not self.country or not self.country.strip():
+            self.country = "Unknown"
+        
+        # Validate description
+        if not self.description or not self.description.strip():
+            raise ValueError("Description cannot be empty")
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Place':
         """Create Place instance from dictionary."""
         logger.info(f"Data: {data}")
-        # Extract coordinates
-        coordinates = Coordinates(
-            latitude=float(data.get('latitude', 0.0)),
-            longitude=float(data.get('longitude', 0.0))
-        )
-        
-        # Extract address
-        address = PlaceAddress(
-            address=data.get('address', ''),
-            pincode=data.get('pincode', ''),
-            country=data.get('country', 'Unknown')
-        )
-        
-        # Extract rating
-        rating = PlaceRating(
-            rating=float(data.get('rating', 0.0)),
-            followers=float(data.get('followers', 0.0))
-        )
-        
-        # Extract timestamps
-        created_at = data.get('created_at')
-        updated_at = data.get('updated_at')
-        
-        if created_at:
-            if isinstance(created_at, str):
-                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-        else:
-            created_at = datetime.utcnow()
-            
-        if updated_at:
-            if isinstance(updated_at, str):
-                updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
-        else:
-            updated_at = datetime.utcnow()
-        
-        timestamps = PlaceTimestamps(created_at=created_at, updated_at=updated_at)
         
         return cls(
-            id=data.get('id'),
-            name=data.get('name', ''),
+            id=data.get('id', ''),
+            latitude=float(data.get('latitude', 0.0)),
+            longitude=float(data.get('longitude', 0.0)),
             types=data.get('types', ''),
-            coordinates=coordinates,
-            address=address,
-            rating=rating,
-            timestamps=timestamps
+            name=data.get('name', ''),
+            address=data.get('address', ''),
+            pincode=data.get('pincode', ''),
+            rating=float(data.get('rating', 0.0)),
+            followers=float(data.get('followers', 0.0)),
+            country=data.get('country', 'Unknown'),
+            description=data.get('description', '')
         )
     
     def to_dict(self) -> Dict[str, Any]:
@@ -326,15 +323,14 @@ class Place:
             'id': self.id,
             'name': self.name,
             'types': self.types,
-            'latitude': self.coordinates.latitude,
-            'longitude': self.coordinates.longitude,
-            'address': self.address.address,
-            'pincode': self.address.pincode,
-            'country': self.address.country,
-            'rating': self.rating.rating,
-            'followers': self.rating.followers,
-            'created_at': self.timestamps.created_at,
-            'updated_at': self.timestamps.updated_at
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'address': self.address,
+            'pincode': self.pincode,
+            'country': self.country,
+            'rating': self.rating,
+            'followers': self.followers,
+            'description': self.description
         }
     
     def update(self, **kwargs) -> None:
@@ -342,13 +338,13 @@ class Place:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-        
-        # Update timestamp
-        self.timestamps.update_timestamp()
     
     def get_distance_to(self, other_place: 'Place') -> float:
         """Calculate distance to another place."""
-        return self.coordinates.distance_to(other_place.coordinates)
+        # Create temporary Coordinates objects for distance calculation
+        coords1 = Coordinates(latitude=self.latitude, longitude=self.longitude)
+        coords2 = Coordinates(latitude=other_place.latitude, longitude=other_place.longitude)
+        return coords1.distance_to(coords2)
     
     def is_near(self, other_place: 'Place', max_distance_km: float = 10.0) -> bool:
         """Check if this place is near another place."""
@@ -368,12 +364,17 @@ if PYDANTIC_AVAILABLE:
     class PlaceCreate(BaseModel):
         """Pydantic model for creating a new place."""
         
+        id: str = Field(..., description="Unique place identifier")
         name: constr(min_length=2, max_length=255) = Field(..., description="Place name")
         types: constr(min_length=1, max_length=255) = Field(..., description="Place types")
         latitude: confloat(ge=-90.0, le=90.0) = Field(..., description="Latitude coordinate")
         longitude: confloat(ge=-180.0, le=180.0) = Field(..., description="Longitude coordinate")
         address: constr(min_length=5, max_length=1000) = Field(..., description="Full address")
-        pincode: str = Field(..., description="6-character pincode")
+        pincode: str = Field(..., description="Pincode")
+        country: constr(min_length=2, max_length=100) = Field(..., description="Country name")
+        rating: confloat(ge=0.0, le=5.0) = Field(..., description="Place rating (0-5)")
+        followers: confloat(ge=0.0) = Field(..., description="Number of followers")
+        description: constr(min_length=1, max_length=2000) = Field(..., description="Place description")
         
         @validator('pincode')
         def validate_pincode(cls, v):
@@ -384,9 +385,6 @@ if PYDANTIC_AVAILABLE:
             if len(v) >= 10:
                 raise ValueError('Pincode must be less than 10 characters')
             return v
-        country: constr(min_length=2, max_length=100) = Field(default="Unknown", description="Country name")
-        rating: confloat(ge=0.0, le=5.0) = Field(default=0.0, description="Place rating (0-5)")
-        followers: confloat(ge=0.0) = Field(default=0.0, description="Number of followers")
         
         @validator('types')
         def validate_types(cls, v):
@@ -409,6 +407,13 @@ if PYDANTIC_AVAILABLE:
                 raise ValueError('Address cannot be empty')
             return v.strip()
         
+        @validator('description')
+        def validate_description(cls, v):
+            """Validate description."""
+            if not v or not v.strip():
+                raise ValueError('Description cannot be empty')
+            return v.strip()
+        
         def to_place(self) -> Place:
             """Convert to Place instance."""
             return Place.from_dict(self.dict())
@@ -416,12 +421,17 @@ if PYDANTIC_AVAILABLE:
     class PlaceUpdate(BaseModel):
         """Pydantic model for updating an existing place."""
         
+        id: Optional[str] = Field(None, description="Unique place identifier")
         name: Optional[constr(min_length=2, max_length=255)] = Field(None, description="Place name")
         types: Optional[constr(min_length=1, max_length=255)] = Field(None, description="Place types")
         latitude: Optional[confloat(ge=-90.0, le=90.0)] = Field(None, description="Latitude coordinate")
         longitude: Optional[confloat(ge=-180.0, le=180.0)] = Field(None, description="Longitude coordinate")
         address: Optional[constr(min_length=5, max_length=1000)] = Field(None, description="Full address")
-        pincode: Optional[str] = Field(None, description="6-character pincode")
+        pincode: Optional[str] = Field(None, description="Pincode")
+        country: Optional[constr(min_length=2, max_length=100)] = Field(None, description="Country name")
+        rating: Optional[confloat(ge=0.0, le=5.0)] = Field(None, description="Place rating (0-5)")
+        followers: Optional[confloat(ge=0.0)] = Field(None, description="Number of followers")
+        description: Optional[constr(min_length=1, max_length=2000)] = Field(None, description="Place description")
         
         @validator('pincode')
         def validate_pincode(cls, v):
@@ -433,9 +443,6 @@ if PYDANTIC_AVAILABLE:
                 if len(v) >= 10:
                     raise ValueError('Pincode must be less than 10 characters')
             return v
-        country: Optional[constr(min_length=2, max_length=100)] = Field(None, description="Country name")
-        rating: Optional[confloat(ge=0.0, le=5.0)] = Field(None, description="Place rating (0-5)")
-        followers: Optional[confloat(ge=0.0)] = Field(None, description="Number of followers")
         
         @validator('name', 'types', 'latitude', 'longitude', 'address', 'pincode', 'country', 'rating', 'followers', pre=True)
         def check_at_least_one_field(cls, v, values):
@@ -452,12 +459,11 @@ if PYDANTIC_AVAILABLE:
         latitude: float = Field(..., description="Latitude coordinate")
         longitude: float = Field(..., description="Longitude coordinate")
         address: str = Field(..., description="Full address")
-        pincode: str = Field(..., description="Pincode (must be less than 10 characters)")
+        pincode: str = Field(..., description="Pincode")
         country: str = Field(..., description="Country name")
         rating: float = Field(..., description="Place rating")
         followers: float = Field(..., description="Number of followers")
-        created_at: datetime = Field(..., description="Creation timestamp")
-        updated_at: datetime = Field(..., description="Last update timestamp")
+        description: str = Field(..., description="Place description")
         
         class Config:
             """Pydantic configuration."""
@@ -569,8 +575,12 @@ def create_place_from_api_data(api_data: Dict[str, Any]) -> Place:
     rating = api_data.get('rating', 0.0)
     followers = api_data.get('user_ratings_total', 0.0)
     
+    # Extract description
+    description = api_data.get('description', '')
+    
     # Create place data dictionary
     place_data = {
+        'id': api_data.get('id', ''),
         'name': name,
         'types': types,
         'latitude': latitude,
@@ -579,7 +589,8 @@ def create_place_from_api_data(api_data: Dict[str, Any]) -> Place:
         'pincode': pincode,
         'country': country,
         'rating': rating,
-        'followers': followers
+        'followers': followers,
+        'description': description
     }
     
     return Place.from_dict(place_data)
@@ -590,7 +601,7 @@ def validate_place_data(data: Dict[str, Any]) -> List[str]:
     errors = []
     
     # Required fields
-    required_fields = ['name', 'types', 'latitude', 'longitude', 'address', 'pincode']
+    required_fields = ['name', 'types', 'latitude', 'longitude', 'address', 'pincode', 'description']
     for field in required_fields:
         if field not in data or not data[field]:
             errors.append(f"Required field '{field}' is missing")

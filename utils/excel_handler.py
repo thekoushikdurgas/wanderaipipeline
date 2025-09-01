@@ -14,66 +14,66 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any, Union
 import pandas as pd
 import numpy as np
-
-# Import utilities and configuration
-try:
-    from utils.settings import excel_config
-    from utils.logger import get_logger, log_performance
-    from utils.error_handlers import (
+from utils.settings import excel_config
+from utils.logger import get_logger, log_performance
+from utils.error_handlers import (
         handle_errors, safe_execute, FileSystemError, 
         ErrorContext, PlacesAppException
     )
-except ImportError:
-    # Fallback configuration
-    class MockExcelConfig:
-        excel_file_path = "utils/places.xlsx"
-        sheet_name = "Places"
-        enable_excel_sync = True
-        excel_backup_enabled = True
-        excel_backup_count = 5
-        use_excel_cache = True
-        excel_cache_timeout = 300
-        auto_save_threshold = 10
-        excel_columns = [
-            'id', 'latitude', 'longitude', 'types', 
-            'name', 'address', 'pincode', 'rating', 'followers', 'country',
-            'created_at', 'updated_at'
-        ]
+
+# Import utilities and configuration
+# try:
+# except ImportError:
+#     # Fallback configuration
+#     class MockExcelConfig:
+#         excel_file_path = "utils/places.xlsx"
+#         sheet_name = "Places"
+#         enable_excel_sync = True
+#         excel_backup_enabled = True
+#         excel_backup_count = 5
+#         use_excel_cache = True
+#         excel_cache_timeout = 300
+#         auto_save_threshold = 10
+#         excel_columns = [
+#             'id', 'latitude', 'longitude', 'types', 
+#             'name', 'address', 'pincode', 'rating', 'followers', 'country', 'description',
+#             'created_at', 'updated_at'
+#         ]
     
-    excel_config = MockExcelConfig()
+#     excel_config = MockExcelConfig()
     
-    class MockLogger:
-        def debug(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
-        def info(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
-        def warning(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
-        def error(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
+    # class MockLogger:
+    #     def debug(self, msg, **kwargs): 
+    #         # Mock logger - no operation implementation
+    #         pass
+    #     def info(self, msg, **kwargs): 
+    #         # Mock logger - no operation implementation
+    #         pass
+    #     def warning(self, msg, **kwargs): 
+    #         # Mock logger - no operation implementation
+    #         pass
+    #     def error(self, msg, **kwargs): 
+    #         # Mock logger - no operation implementation
+    #         pass
     
-    def get_logger(_name):
-        return MockLogger()
+    # def get_logger(_name):
+    #     return MockLogger()
     
-    def log_performance(_name):
-        def decorator(func):
-            return func
-        return decorator
+    # def log_performance(_name):
+    #     def decorator(func):
+    #         return func
+    #     return decorator
     
-    def handle_errors(**_kwargs):
-        def decorator(func):
-            return func
-        return decorator
+    # def handle_errors(**_kwargs):
+    #     def decorator(func):
+    #         return func
+    #     return decorator
     
-    def safe_execute(op, _name, default=None, _context=None):
-        try:
-            return op()
-        except Exception:
-            return default
+    # def safe_execute(op, _name, default=None, _context=None):
+    #     try:
+    #         return op()
+    #     except Exception:
+    #         return default
 
 # Initialize logger
 logger = get_logger(__name__)

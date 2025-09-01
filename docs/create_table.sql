@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS places (
     rating FLOAT4 DEFAULT 0.0,
     followers FLOAT4 DEFAULT 0.0,
     country VARCHAR(100) DEFAULT 'Unknown',
+    description TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -23,6 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_places_created_at ON places(created_at);
 CREATE INDEX IF NOT EXISTS idx_places_rating ON places(rating);
 CREATE INDEX IF NOT EXISTS idx_places_country ON places(country);
 CREATE INDEX IF NOT EXISTS idx_places_pincode ON places(pincode);
+CREATE INDEX IF NOT EXISTS idx_places_description ON places(description);
 
 -- Enable Row Level Security (RLS) - optional
 -- ALTER TABLE places ENABLE ROW LEVEL SECURITY;
@@ -48,64 +50,59 @@ CREATE OR REPLACE FUNCTION format_pincode(pincode_input TEXT)
 RETURNS TEXT AS $$
 BEGIN
     -- Remove any spaces and convert to uppercase
-    pincode_input := upper(regexp_replace(pincode_input, '\s+', '', 'g'));
+    pincode_input := trim(upper(pincode_input));
     
-    -- If it's all digits, validate length (must be less than 10)
-    IF pincode_input ~ '^[0-9]+$' THEN
-        -- Keep as is if less than 10 characters, truncate if longer
-        IF length(pincode_input) >= 10 THEN
-            pincode_input := left(pincode_input, 9);
-        END IF;
-    -- If it's alphanumeric, convert to digits only and validate
-    ELSIF pincode_input ~ '^[A-Z0-9]+$' THEN
-        -- Extract only digits
-        pincode_input := regexp_replace(pincode_input, '[^0-9]', '', 'g');
-        -- Truncate if longer than 9 digits
-        IF length(pincode_input) >= 10 THEN
-            pincode_input := left(pincode_input, 9);
-        END IF;
+    -- If it's numeric and less than 6 digits, pad with leading zeros
+    IF pincode_input ~ '^[0-9]+$' AND length(pincode_input) < 6 THEN
+        RETURN lpad(pincode_input, 6, '0');
     END IF;
     
+    -- If it's exactly 6 characters, return as is
+    IF length(pincode_input) = 6 THEN
+        RETURN pincode_input;
+    END IF;
+    
+    -- If it's longer than 6 characters, truncate
+    IF length(pincode_input) > 6 THEN
+        RETURN substring(pincode_input from 1 for 6);
+    END IF;
+    
+    -- Default case: return as is
     RETURN pincode_input;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger to automatically format pincode before insert/update
+-- Function to automatically format pincode on insert/update
 CREATE OR REPLACE FUNCTION format_pincode_trigger()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Format pincode before insert/update
     NEW.pincode := format_pincode(NEW.pincode);
-    
-    -- Validate the formatted pincode
-    IF NOT validate_pincode(NEW.pincode) THEN
-        RAISE EXCEPTION 'Invalid pincode format. Must be less than 10 characters and contain only digits.';
-    END IF;
-    
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for automatic pincode formatting
-DROP TRIGGER IF EXISTS trigger_format_pincode ON places;
-CREATE TRIGGER trigger_format_pincode
+-- Create trigger to automatically format pincode
+DROP TRIGGER IF EXISTS format_pincode_trigger ON places;
+CREATE TRIGGER format_pincode_trigger
     BEFORE INSERT OR UPDATE ON places
     FOR EACH ROW
     EXECUTE FUNCTION format_pincode_trigger();
 
--- Insert some sample data (optional) - using various pincode lengths (less than 10 characters)
-INSERT INTO places (id,latitude, longitude, types, name, address, pincode, rating, followers, country) VALUES
-( 'ola-platform:5000046837683',40.7128, -74.0060, 'tourist_attraction', 'Statue of Liberty', 'Liberty Island, New York, NY', '10004', 4.5, 15000, 'United States'),
-('ola-platform:5000046837684',34.0522, -118.2437, 'restaurant', 'In-N-Out Burger', '7000 Sunset Blvd, Los Angeles, CA', '90028', 4.2, 8500, 'United States'),
-('ola-platform:5000046837685',51.5074, -0.1278, 'hotel', 'The Ritz London', '150 Piccadilly, St. James''s, London', 'SW1A1A', 4.8, 22000, 'United Kingdom'),
-('ola-platform:5000046837686',35.6762, 139.6503, 'tourist_attraction', 'Tokyo Tower', '4 Chome-2-8 Shibakoen, Minato City, Tokyo', '105001', 4.3, 12000, 'Japan'),
-('ola-platform:5000046837687',48.8584, 2.2945, 'tourist_attraction', 'Eiffel Tower', 'Champ de Mars, 5 Avenue Anatole France, Paris', '75007', 4.6, 18000, 'France')
+-- Insert sample data
+INSERT INTO places (id,latitude, longitude, types, name, address, pincode, rating, followers, country, description) VALUES
+( 'ola-platform:5000046837683',40.7128, -74.0060, 'tourist_attraction', 'Statue of Liberty', 'Liberty Island, New York, NY', '10004', 4.5, 15000, 'United States', 'Iconic symbol of freedom and democracy in New York Harbor'),
+('ola-platform:5000046837684',34.0522, -118.2437, 'restaurant', 'In-N-Out Burger', '7000 Sunset Blvd, Los Angeles, CA', '90028', 4.2, 8500, 'United States', 'Popular fast-food chain known for fresh ingredients and secret menu'),
+('ola-platform:5000046837685',51.5074, -0.1278, 'hotel', 'The Ritz London', '150 Piccadilly, St. James''s, London', 'SW1A1A', 4.8, 22000, 'United Kingdom', 'Luxury hotel in the heart of London with historic elegance'),
+('ola-platform:5000046837686',35.6762, 139.6503, 'tourist_attraction', 'Tokyo Tower', '4 Chome-2-8 Shibakoen, Minato City, Tokyo', '105001', 4.3, 12000, 'Japan', 'Famous communications and observation tower in Tokyo'),
+('ola-platform:5000046837687',48.8584, 2.2945, 'tourist_attraction', 'Eiffel Tower', 'Champ de Mars, 5 Avenue Anatole France, Paris', '75007', 4.6, 18000, 'France', 'Iconic iron lattice tower on the Champ de Mars in Paris')
 ON CONFLICT DO NOTHING;
 
 -- For existing databases, run these ALTER TABLE statements:
 -- ALTER TABLE places ADD COLUMN IF NOT EXISTS rating FLOAT4 DEFAULT 0.0;
 -- ALTER TABLE places ADD COLUMN IF NOT EXISTS followers FLOAT4 DEFAULT 0.0;
 -- ALTER TABLE places ADD COLUMN IF NOT EXISTS country VARCHAR(100) DEFAULT 'Unknown';
+-- ALTER TABLE places ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
 
 -- Add pincode validation constraint if not exists
 -- ALTER TABLE places ADD CONSTRAINT IF NOT EXISTS check_pincode_format CHECK (length(pincode) < 10 AND pincode ~ '^[0-9]+$');
@@ -121,7 +118,11 @@ SELECT
     name, 
     pincode,
     length(pincode) as pincode_length,
-    validate_pincode(pincode) as is_valid_pincode
+    validate_pincode(pincode) as is_valid_pincode,
+    rating,
+    followers,
+    country,
+    description
 FROM places 
 ORDER BY id
 LIMIT 10;

@@ -128,29 +128,8 @@ class PostmanCollectionLoader:
         
         # Parse URL
         url_data = request["url"]["raw"]
-        # paths = request["url"]["path"]
         url = url_data
-        # for path in paths:
-        #     url += "/" + path
         url = self._substitute_variables(url)
-        # logger.info(f"Parsed URL: {url}")
-        # # Substitute variables in URL
-        # url = self._substitute_variables(url, variables)
-        
-        # # Extract path from URL
-        # logger.info(f"Parsed URL: {url}")
-        # if url.startswith('http'):
-        #     # Remove base URL to get path
-        #     if self.base_url in url:
-        #         url = url.replace(self.base_url, '')
-        #     else:
-        #         # Extract path from full URL
-        #         parsed = urlparse(url)
-        #         logger.info(f"Parsed URL: {parsed}")
-        #         url = parsed.path
-        #         if parsed.query:
-        #             url += '?' + parsed.query
-        
         # Parse method
         method = request.get('method', 'GET').upper()
         
@@ -162,7 +141,6 @@ class PostmanCollectionLoader:
                 value = header.get('value', '')
                 if key and value:
                     headers[key] = value
-                    # headers[key] = self._substitute_variables(value, variables)
         
         # Parse query parameters
         query_params = {}
@@ -170,7 +148,6 @@ class PostmanCollectionLoader:
             key = param.get('key', '')
             value = param.get('value', '')
             if key and value:
-                # query_params[key] = self._substitute_variables(value, variables)
                 query_params[key] = value
         
         # Parse body parameters
@@ -270,10 +247,7 @@ class OLAMapsAPITester:
     def test_endpoint(self, endpoint: APIEndpoint, custom_params: Dict[str, Any] = None) -> Dict[str, Any]:
         """Test a single API endpoint."""
         try:
-            # Prepare URL
             url = endpoint.url
-            
-            # Replace path parameters
             if custom_params:
                 for param in endpoint.required_params or []:
                     if param in custom_params:
@@ -281,11 +255,8 @@ class OLAMapsAPITester:
             
             for param in self.variables:
                 url = url.replace(f"{{{param}}}", str(self.variables[param]))
-            # logger.info(f"URL: {url}")
             # Prepare headers
             headers = endpoint.headers.copy()
-            
-            # Update authorization headers with current tokens
             for key in headers:
                 if 'authorization' in key.lower() and 'bearer' in headers[key].lower():
                     headers[key] = f"Bearer {self.bearer_token}"
@@ -296,14 +267,6 @@ class OLAMapsAPITester:
                 for key, value in custom_params.items():
                     query_params[key] = value
             query_params["api_key"] = self.api_key
-            # logger.info(f"Query params: {query_params}")
-            # for param in self.variables:
-            #     query_params[param] = self.variables[param]
-            # Update API key in query params
-            # if 'api_key' in query_params:
-            #     query_params['api_key'] = self.api_key
-            
-            # Prepare body for POST requests
             body = None
             if endpoint.method == "POST" and endpoint.body_params:
                 body = endpoint.body_params.copy()
@@ -313,10 +276,6 @@ class OLAMapsAPITester:
                             body[key] = value
                 body = json.dumps(body)
             url = url.split("?")[0]
-            # logger.info(f"URL: {url}")
-            # logger.info(f"Headers: {headers}")            
-            # logger.info(f"Body: {body}")
-            # Make request
             start_time = time.time()
             response = requests.request(
                 method=endpoint.method,

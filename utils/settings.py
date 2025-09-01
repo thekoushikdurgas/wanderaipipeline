@@ -90,7 +90,7 @@ class ValidationConfig:
     def __post_init__(self):
         """Set default values after initialization."""
         if self.required_fields is None:
-            self.required_fields = ["name", "address", "types", "pincode"]
+            self.required_fields = ["name", "address", "types", "pincode", "description"]
 
 
 @dataclass
@@ -224,6 +224,7 @@ class ExcelConfig:
                 "rating",
                 "followers",
                 "country",
+                "description",
                 "created_at",
                 "updated_at",
             ]
@@ -245,8 +246,8 @@ class AppConstants:
 
     # Navigation pages
     PAGES = {
-        "VIEW_ALL": "View All Places",
         "ADD_NEW": "Add New Place",
+        "VIEW_ALL": "View All Places",
         "SEARCH": "Search Places",
         "ANALYTICS": "Analytics Dashboard",
         "API_TESTING": "OLA Maps API Testing",

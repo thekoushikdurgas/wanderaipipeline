@@ -442,6 +442,55 @@ class TextValidator:
                     errors=len(result.errors),
                     type_count=len(type_list))
         return result
+    
+    @staticmethod
+    def validate_description(description: str) -> ValidationResult:
+        """
+        Validate place description.
+        
+        Args:
+            description: Description string to validate
+            
+        Returns:
+            ValidationResult: Validation result with errors if any
+        """
+        result = ValidationResult(is_valid=True, errors=[], warnings=[], field_errors={})
+        
+        logger.debug("Validating description", description=description, length=len(description) if description else 0)
+        
+        # Check if description is provided
+        if not description or not description.strip():
+            result.add_error("Place description is required", "description")
+            return result
+        
+        description = description.strip()
+        
+        # Check length (max 2000 characters)
+        if len(description) > 2000:
+            result.add_error(
+                f"Description must be no more than 2000 characters, got: {len(description)}",
+                "description"
+            )
+        
+        # Check minimum length
+        if len(description) < 10:
+            result.add_warning(
+                "Description should be at least 10 characters for better user experience",
+                "description"
+            )
+        
+        # Check for meaningful content (not just repeated characters)
+        if len(set(description)) < 3:
+            result.add_warning(
+                "Description appears to contain repetitive characters. Consider providing more meaningful content.",
+                "description"
+            )
+        
+        logger.debug("Description validation completed", 
+                    is_valid=result.is_valid, 
+                    errors=len(result.errors),
+                    length=len(description))
+        return result
 
 
 class PincodeValidator:
@@ -531,7 +580,8 @@ class PlaceValidator:
         
         # Check required fields
         missing_fields = []
-        for field in validation_config.required_fields:
+        required_fields = ['name', 'address', 'types', 'pincode', 'description']
+        for field in required_fields:
             if field not in place_data or not place_data[field]:
                 missing_fields.append(field)
         
@@ -545,6 +595,7 @@ class PlaceValidator:
             'address': TextValidator.validate_address,
             'types': TextValidator.validate_types,
             'pincode': PincodeValidator.validate_pincode,
+            'description': TextValidator.validate_description,
         }
         
         for field, validator in validators.items():

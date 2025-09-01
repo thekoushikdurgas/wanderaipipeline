@@ -5,10 +5,12 @@
 ALTER TABLE places ADD COLUMN IF NOT EXISTS rating FLOAT4 DEFAULT 0.0;
 ALTER TABLE places ADD COLUMN IF NOT EXISTS followers FLOAT4 DEFAULT 0.0;
 ALTER TABLE places ADD COLUMN IF NOT EXISTS country VARCHAR(100) DEFAULT 'Unknown';
+ALTER TABLE places ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
 
 -- Create indexes for better performance on new columns
 CREATE INDEX IF NOT EXISTS idx_places_rating ON places(rating);
 CREATE INDEX IF NOT EXISTS idx_places_country ON places(country);
+CREATE INDEX IF NOT EXISTS idx_places_description ON places(description);
 
 -- Update existing records to have default values
 UPDATE places SET 
@@ -17,6 +19,8 @@ UPDATE places SET
     followers = 0.0 WHERE followers IS NULL;
 UPDATE places SET 
     country = 'Unknown' WHERE country IS NULL OR country = '';
+UPDATE places SET 
+    description = '' WHERE description IS NULL;
 
 -- Drop existing pincode constraint if it exists (to avoid conflicts)
 ALTER TABLE places DROP CONSTRAINT IF EXISTS check_pincode_format;
@@ -43,20 +47,24 @@ CREATE OR REPLACE FUNCTION format_pincode(pincode_input TEXT)
 RETURNS TEXT AS $$
 BEGIN
     -- Remove any spaces and convert to uppercase
-    pincode_input := upper(regexp_replace(pincode_input, '\s+', '', 'g'));
+    pincode_input := trim(upper(pincode_input));
     
-    -- If it's all digits, pad with leading zeros to 6 digits
-    IF pincode_input ~ '^[0-9]+$' THEN
-        pincode_input := lpad(pincode_input, 6, '0');
-    -- If it's alphanumeric, ensure it's exactly 6 characters
-    ELSIF pincode_input ~ '^[A-Z0-9]+$' THEN
-        IF length(pincode_input) < 6 THEN
-            pincode_input := lpad(pincode_input, 6, '0');
-        ELSIF length(pincode_input) > 6 THEN
-            pincode_input := left(pincode_input, 6);
-        END IF;
+    -- If it's numeric and less than 6 digits, pad with leading zeros
+    IF pincode_input ~ '^[0-9]+$' AND length(pincode_input) < 6 THEN
+        RETURN lpad(pincode_input, 6, '0');
     END IF;
     
+    -- If it's exactly 6 characters, return as is
+    IF length(pincode_input) = 6 THEN
+        RETURN pincode_input;
+    END IF;
+    
+    -- If it's longer than 6 characters, truncate
+    IF length(pincode_input) > 6 THEN
+        RETURN substring(pincode_input from 1 for 6);
+    END IF;
+    
+    -- Default case: return as is
     RETURN pincode_input;
 END;
 $$ LANGUAGE plpgsql;
@@ -84,33 +92,22 @@ CREATE TRIGGER trigger_format_pincode
     FOR EACH ROW
     EXECUTE FUNCTION format_pincode_trigger();
 
--- Update existing pincodes to ensure they are 6 characters
+-- Update existing pincodes to ensure they are exactly 6 characters
 UPDATE places 
 SET pincode = format_pincode(pincode)
 WHERE pincode IS NOT NULL;
 
 -- Verify the changes
 SELECT 
-    column_name, 
-    data_type, 
-    is_nullable, 
-    column_default
-FROM information_schema.columns 
-WHERE table_name = 'places' 
-ORDER BY ordinal_position;
-
--- Show sample data with new columns and pincode validation
-SELECT 
-    place_id, 
+    id, 
     name, 
-    types, 
     pincode,
     length(pincode) as pincode_length,
     validate_pincode(pincode) as is_valid_pincode,
-    rating, 
-    followers, 
-    country, 
-    created_at
+    rating,
+    followers,
+    country,
+    description
 FROM places 
-ORDER BY place_id
+ORDER BY id
 LIMIT 10;

@@ -448,6 +448,10 @@ class DataTable:
                     if 'country' in places_df.columns:
                         country = places_df.iloc[i]['country']
                         st.write(f"**Country:** {country}" if pd.notna(country) and country else "**Country:** Unknown")
+                    
+                    if 'description' in places_df.columns:
+                        description = places_df.iloc[i]['description']
+                        st.write(f"**Description:** {description}" if pd.notna(description) and description else "**Description:** N/A")
                 
                 with col2:
                     # Edit button
@@ -579,6 +583,14 @@ class PlaceForm:
                     help="Country where the place is located"
                 )
             
+            # Description field
+            description = st.text_area(
+                "Description *", 
+                placeholder="Enter a detailed description of the place",
+                help="Provide a comprehensive description of the place",
+                height=100
+            )
+            
             # Submit button
             submitted = st.form_submit_button("📍 Add Place", type="primary")
             
@@ -596,7 +608,8 @@ class PlaceForm:
                     'pincode': pincode,
                     'rating': rating,
                     'followers': followers,
-                    'country': country
+                    'country': country,
+                    'description': description
                 }
                 
                 # Validate and submit
@@ -721,6 +734,15 @@ class PlaceForm:
                     help="Country name"
                 )
             
+            # Description field
+            edit_description = st.text_area(
+                "Description *", 
+                value=place_data.get('description', ''),
+                key=f"edit_description_{id}",
+                help="Provide a comprehensive description of the place",
+                height=100
+            )
+            
             # Action buttons
             st.markdown("---")
             col1, col2, col3 = st.columns(3)
@@ -758,7 +780,8 @@ class PlaceForm:
                     'pincode': edit_pincode,
                     'rating': edit_rating,
                     'followers': edit_followers,
-                    'country': edit_country
+                    'country': edit_country,
+                    'description': edit_description
                 }
                 
                 # Validate and submit
@@ -793,6 +816,7 @@ class PlaceForm:
             - **Rating:** {rating:.1f}/5.0
             - **Followers:** {followers:.0f}
             - **Country:** {country}
+            - **Description:** {place_data.get('description', 'N/A')}
             - **Created:** {created_at}
             """)
     

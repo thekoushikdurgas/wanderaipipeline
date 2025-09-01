@@ -16,7 +16,7 @@ def test_comprehensive_fix():
     try:
         from utils.database import PlacesDatabase
         from utils.excel_handler import excel_handler
-        from config.settings import validate_configuration
+        from utils.settings import validate_configuration
         
         print("1. Testing configuration validation...")
         config_errors = validate_configuration()

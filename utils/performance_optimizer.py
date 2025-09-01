@@ -13,60 +13,59 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 from functools import wraps
 import psutil
 import os
-
+from utils.settings import performance_config, get_optimized_dtypes, get_performance_settings
+from utils.logger import get_logger
 # Import configuration
-try:
-    from config.settings import performance_config, get_optimized_dtypes, get_performance_settings
-    from utils.logger import get_logger
-except ImportError:
+# try:
+# except ImportError:
     # Fallback configuration
-    class MockPerformanceConfig:
-        use_numpy_operations = True
-        use_pandas_vectorization = True
-        optimize_data_types = True
-        enable_dataframe_cache = True
-        cache_timeout_seconds = 300
-        batch_database_operations = True
-        lazy_loading_enabled = True
-        virtual_scrolling_threshold = 1000
-        debounce_search_ms = 300
+    # class MockPerformanceConfig:
+    #     use_numpy_operations = True
+    #     use_pandas_vectorization = True
+    #     optimize_data_types = True
+    #     enable_dataframe_cache = True
+    #     cache_timeout_seconds = 300
+    #     batch_database_operations = True
+    #     lazy_loading_enabled = True
+    #     virtual_scrolling_threshold = 1000
+    #     debounce_search_ms = 300
     
-    performance_config = MockPerformanceConfig()
+    # performance_config = MockPerformanceConfig()
     
-    def get_optimized_dtypes():
-        return {
-            'id': 'int32',
-            'latitude': 'float64',
-            'longitude': 'float64',
-            'types': 'string',
-            'name': 'string',
-            'address': 'string',
-            'pincode': 'string',
-            'created_at': 'datetime64[ns]',
-            'updated_at': 'datetime64[ns]'
-        }
+    # def get_optimized_dtypes():
+    #     return {
+    #         'id': 'int32',
+    #         'latitude': 'float64',
+    #         'longitude': 'float64',
+    #         'types': 'string',
+    #         'name': 'string',
+    #         'address': 'string',
+    #         'pincode': 'string',
+    #         'created_at': 'datetime64[ns]',
+    #         'updated_at': 'datetime64[ns]'
+    #     }
     
-    def get_performance_settings():
-        return {
-            'use_numpy': True,
-            'use_vectorization': True,
-            'optimize_dtypes': True,
-            'enable_caching': True,
-            'cache_timeout': 300,
-            'batch_operations': True,
-            'lazy_loading': True,
-            'virtual_scrolling': 1000,
-            'debounce_search': 300
-        }
+    # def get_performance_settings():
+    #     return {
+    #         'use_numpy': True,
+    #         'use_vectorization': True,
+    #         'optimize_dtypes': True,
+    #         'enable_caching': True,
+    #         'cache_timeout': 300,
+    #         'batch_operations': True,
+    #         'lazy_loading': True,
+    #         'virtual_scrolling': 1000,
+    #         'debounce_search': 300
+    #     }
     
-    class MockLogger:
-        def debug(self, msg, **kwargs): pass
-        def info(self, msg, **kwargs): pass
-        def warning(self, msg, **kwargs): pass
-        def error(self, msg, **kwargs): pass
+    # class MockLogger:
+    #     def debug(self, msg, **kwargs): pass
+    #     def info(self, msg, **kwargs): pass
+    #     def warning(self, msg, **kwargs): pass
+    #     def error(self, msg, **kwargs): pass
     
-    def get_logger(_name):
-        return MockLogger()
+    # def get_logger(_name):
+    #     return MockLogger()
 
 logger = get_logger(__name__)
 
