@@ -652,7 +652,7 @@ def render_view_all_page(db: PlacesDatabase, place_ops: PlaceOperations):
             unique_countries = places_df['country'].nunique() if 'country' in places_df.columns else 0
             st.metric("Countries", unique_countries)
         with col4:
-            avg_rating = places_df['rating'].mean() if 'rating' in places_df.columns else 0
+            avg_rating = float(places_df['rating'].mean()) if 'rating' in places_df.columns else 0
             st.metric("Avg Rating", f"{avg_rating:.1f}" if avg_rating > 0 else "N/A")
         
         st.markdown("---")

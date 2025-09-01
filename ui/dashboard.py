@@ -127,18 +127,18 @@ class MetricsCalculator:
         
         # New metrics for rating, followers, and country
         if 'rating' in places_df.columns:
-            metrics['avg_rating'] = np.mean(rating_array)
-            metrics['max_rating'] = np.max(rating_array)
-            metrics['min_rating'] = np.min(rating_array)
+            metrics['avg_rating'] = float(np.mean(rating_array))
+            metrics['max_rating'] = float(np.max(rating_array))
+            metrics['min_rating'] = float(np.min(rating_array))
         else:
             metrics['avg_rating'] = 0.0
             metrics['max_rating'] = 0.0
             metrics['min_rating'] = 0.0
             
         if 'followers' in places_df.columns:
-            metrics['total_followers'] = np.sum(followers_array)
-            metrics['avg_followers'] = np.mean(followers_array)
-            metrics['max_followers'] = np.max(followers_array)
+            metrics['total_followers'] = int(np.sum(followers_array))
+            metrics['avg_followers'] = float(np.mean(followers_array))
+            metrics['max_followers'] = int(np.max(followers_array))
         else:
             metrics['total_followers'] = 0
             metrics['avg_followers'] = 0.0
@@ -175,20 +175,20 @@ class MetricsCalculator:
             metrics['places_with_address'] = 0
         
         # Vectorized coordinate statistics using numpy
-        metrics['avg_latitude'] = np.mean(lat_array)
-        metrics['avg_longitude'] = np.mean(lon_array)
+        metrics['avg_latitude'] = float(np.mean(lat_array))
+        metrics['avg_longitude'] = float(np.mean(lon_array))
         
         # Vectorized most common type calculation
         type_counts = places_df['types'].value_counts()
         metrics['most_common_type'] = type_counts.index[0] if not type_counts.empty else 'N/A'
         
         # Vectorized coordinate spread calculation
-        lat_range = np.max(lat_array) - np.min(lat_array)
-        lon_range = np.max(lon_array) - np.min(lon_array)
+        lat_range = float(np.max(lat_array) - np.min(lat_array))
+        lon_range = float(np.max(lon_array) - np.min(lon_array))
         metrics['coordinate_spread'] = {
             'lat_range': lat_range,
             'lon_range': lon_range,
-            'geographic_spread': np.sqrt(lat_range**2 + lon_range**2)
+            'geographic_spread': float(np.sqrt(lat_range**2 + lon_range**2))
         }
         
         # Vectorized data quality metrics
@@ -212,11 +212,11 @@ class MetricsCalculator:
         lat_array = places_df['latitude'].to_numpy()
         lon_array = places_df['longitude'].to_numpy()
         
-        valid_coords = np.sum(
+        valid_coords = int(np.sum(
             (lat_array >= -90) & (lat_array <= 90) & 
             (lon_array >= -180) & (lon_array <= 180)
-        )
-        quality_metrics['coordinate_validity'] = (valid_coords / len(places_df) * 100)
+        ))
+        quality_metrics['coordinate_validity'] = float(valid_coords / len(places_df) * 100)
         
         # Vectorized duplicate detection
         duplicates = places_df.duplicated(subset=['name', 'address']).sum()
@@ -395,7 +395,7 @@ class MetricsCalculator:
         thirty_days_ago = pd.Timestamp.now(tz='UTC') - pd.Timedelta(days=30)
         # Ensure both are timezone-aware for comparison
         recent_mask = df_copy['created_at'] >= thirty_days_ago
-        metrics['recent_additions'] = np.sum(recent_mask)
+        metrics['recent_additions'] = int(np.sum(recent_mask))
         
         # Vectorized growth rate calculation
         if len(df_copy) > 1:
@@ -415,7 +415,7 @@ class MetricsCalculator:
         # Calculate mode using numpy
         unique_hours, counts = np.unique(hour_array, return_counts=True)
         peak_hour_idx = np.argmax(counts)
-        metrics['peak_hour'] = unique_hours[peak_hour_idx] if len(unique_hours) > 0 else 0
+        metrics['peak_hour'] = int(unique_hours[peak_hour_idx]) if len(unique_hours) > 0 else 0
         
         unique_days, day_counts = np.unique(day_array, return_counts=True)
         peak_day_idx = np.argmax(day_counts)
