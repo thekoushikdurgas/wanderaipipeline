@@ -221,8 +221,10 @@ class OLAMapsAPITester:
     
     def __init__(self):
         self.base_url = "https://api.olamaps.io"
-        self.api_key = "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf"
-        self.bearer_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0eXAiOiJDbGllbnQiLCJqdGkiOiJyN0p2QThLSExSOGJuSnN0ODN5Y1VkIiwic3ViIjoic2g3ZHVCN2hZSERQUEN1MVp2TnZCZyIsImFjYyI6InA5eXp5dEJHczR2aHZUVEhUbnNtYTkiLCJleHAiOjE3NTY1ODg3OTl9.J_6ajBCWlrTLbYoyvefL_aJGrEgBCuD8yFT4CJC-C2n8CwsFnJR8p8rF_C5w3mzlYestAgocPSrDYEQOeFGSj1DVHrdZSbYvqHJsK4Q7Fnq5JMRxNiIOF6oKLpNOUFDQMPo1F7qR5MPIbvzPMq8VwaRHpOHKvviaJbq4Bxz2wUhAROdiwDKn7d6v8Xz9sh2ue0Fnj-odSlUpjyIuh_G2EaTsCKXeF-tJinJ17KqMQrLIbX2AEuJOt1Dau2r81O_xerb451X3WlpsIhDrjDXRaGME2813QEI_X34bjT8FvDiJBhy8nhdH0UgSypgddrDtyAAkzNqBpd82Xf-8MvJSIQ"
+        # Use environment variables if available, otherwise use defaults
+        import os
+        self.api_key = os.getenv("OLA_MAPS_API_KEY", "SxJhsrEpqjBqIdicTM7OsQcaFSRC0KRoq43BiRQf")
+        self.bearer_token = os.getenv("OLA_MAPS_BEARER_TOKEN", "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0eXAiOiJDbGllbnQiLCJqdGkiOiJyN0p2QThLSExSOGJuSnN0ODN5Y1VkIiwic3ViIjoic2g3ZHVCN2hZSERQUEN1MVp2TnZCZyIsImFjYyI6InA5eXp5dEJHczR2aHZUVEhUbnNtYTkiLCJleHAiOjE3NTY1ODg3OTl9.J_6ajBCWlrTLbYoyvefL_aJGrEgBCuD8yFT4CJC-C2n8CwsFnJR8p8rF_C5w3mzlYestAgocPSrDYEQOeFGSj1DVHrdZSbYvqHJsK4Q7Fnq5JMRxNiIOF6oKLpNOUFDQMPo1F7qR5MPIbvzPMq8VwaRHpOHKvviaJbq4Bxz2wUhAROdiwDKn7d6v8Xz9sh2ue0Fnj-odSlUpjyIuh_G2EaTsCKXeF-tJinJ17KqMQrLIbX2AEuJOt1Dau2r81O_xerb451X3WlpsIhDrjDXRaGME2813QEI_X34bjT8FvDiJBhy8nhdH0UgSypgddrDtyAAkzNqBpd82Xf-8MvJSIQ")
         self.collection_loader = PostmanCollectionLoader()
         self.endpoints = {}
         self.current_collection = None

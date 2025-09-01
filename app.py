@@ -282,7 +282,7 @@ class PlaceOperations:
         )
         
         if success:
-            self.logger.info("Place added successfully", place_name=form_data.get('name'))
+            # self.logger.info("Place added successfully", place_name=form_data.get('name'))
             ApplicationState.reset_pagination()
             return True
         else:
@@ -646,7 +646,16 @@ def render_view_all_page(db: PlacesDatabase, place_ops: PlaceOperations):
         with col1:
             st.metric("Total Places", len(places_df))
         with col2:
-            unique_types = places_df['types'].nunique() if 'types' in places_df.columns else 0
+            # Calculate unique types by splitting comma-separated values
+            unique_types = 0
+            if 'types' in places_df.columns:
+                all_types = []
+                for types_str in places_df['types'].dropna():
+                    if isinstance(types_str, str):
+                        # Split by comma and strip whitespace
+                        types_list = [t.strip() for t in types_str.split(',') if t.strip()]
+                        all_types.extend(types_list)
+                unique_types = len(set(all_types)) if all_types else 0
             st.metric("Unique Types", unique_types)
         with col3:
             unique_countries = places_df['country'].nunique() if 'country' in places_df.columns else 0

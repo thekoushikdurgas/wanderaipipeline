@@ -19,7 +19,7 @@ python-dotenv>=1.0.0
 # Data visualization and analytics
 plotly>=5.15.0
 
-# Excel file handling for fast response and backup
+# Excel file handling for fast response
 openpyxl>=3.1.0
 xlsxwriter>=3.1.0
 

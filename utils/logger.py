@@ -15,24 +15,24 @@ from typing import Any, Callable, Optional, Dict, Union
 from datetime import datetime
 from pathlib import Path
 
+from utils.settings import logging_config
 # Import configuration
-try:
-    from utils.settings import logging_config
-except ImportError:
-    # Fallback configuration if config module is not available
-    class FallbackLoggingConfig:
-        log_level = "INFO"
-        debug_mode = False
-        log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        date_format = "%Y-%m-%d %H:%M:%S"
-        log_to_file = False
-        log_file_path = "logs/app.log"
-        log_max_bytes = 10 * 1024 * 1024
-        log_backup_count = 5
-        log_sql_queries = False
-        log_performance = False
+# try:
+# except ImportError:
+#     # Fallback configuration if config module is not available
+#     class FallbackLoggingConfig:
+#         log_level = "INFO"
+#         debug_mode = False
+#         log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+#         date_format = "%Y-%m-%d %H:%M:%S"
+#         log_to_file = False
+#         log_file_path = "logs/app.log"
+#         log_max_bytes = 10 * 1024 * 1024
+#         log_backup_count = 5
+#         log_sql_queries = False
+#         log_performance = False
     
-    logging_config = FallbackLoggingConfig()
+#     logging_config = FallbackLoggingConfig()
 
 
 class ColoredFormatter(logging.Formatter):

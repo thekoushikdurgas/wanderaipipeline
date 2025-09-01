@@ -587,7 +587,14 @@ elif page == "Analytics Dashboard":
             st.metric("Total Places", len(all_places))
         
         with col2:
-            unique_types = all_places['types'].nunique()
+            # Calculate unique types by splitting comma-separated values
+            all_types = []
+            for types_str in all_places['types'].dropna():
+                if isinstance(types_str, str):
+                    # Split by comma and strip whitespace
+                    types_list = [t.strip() for t in types_str.split(',') if t.strip()]
+                    all_types.extend(types_list)
+            unique_types = len(set(all_types)) if all_types else 0
             st.metric("Unique Types", unique_types)
         
         with col3:

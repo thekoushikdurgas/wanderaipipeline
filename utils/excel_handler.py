@@ -1,7 +1,7 @@
 """
 Excel file handling utilities for the Places Management System.
 
-This module provides comprehensive Excel operations for backup, caching, and fast
+This module provides comprehensive Excel operations for caching and fast
 data access with proper error handling and performance optimization.
 Optimized with numpy and pandas vectorization for faster response times.
 """
@@ -20,60 +20,6 @@ from utils.error_handlers import (
         handle_errors, safe_execute, FileSystemError, 
         ErrorContext, PlacesAppException
     )
-
-# Import utilities and configuration
-# try:
-# except ImportError:
-#     # Fallback configuration
-#     class MockExcelConfig:
-#         excel_file_path = "utils/places.xlsx"
-#         sheet_name = "Places"
-#         enable_excel_sync = True
-#         excel_backup_enabled = True
-#         excel_backup_count = 5
-#         use_excel_cache = True
-#         excel_cache_timeout = 300
-#         auto_save_threshold = 10
-#         excel_columns = [
-#             'id', 'latitude', 'longitude', 'types', 
-#             'name', 'address', 'pincode', 'rating', 'followers', 'country', 'description',
-#             'created_at', 'updated_at'
-#         ]
-    
-#     excel_config = MockExcelConfig()
-    
-    # class MockLogger:
-    #     def debug(self, msg, **kwargs): 
-    #         # Mock logger - no operation implementation
-    #         pass
-    #     def info(self, msg, **kwargs): 
-    #         # Mock logger - no operation implementation
-    #         pass
-    #     def warning(self, msg, **kwargs): 
-    #         # Mock logger - no operation implementation
-    #         pass
-    #     def error(self, msg, **kwargs): 
-    #         # Mock logger - no operation implementation
-    #         pass
-    
-    # def get_logger(_name):
-    #     return MockLogger()
-    
-    # def log_performance(_name):
-    #     def decorator(func):
-    #         return func
-    #     return decorator
-    
-    # def handle_errors(**_kwargs):
-    #     def decorator(func):
-    #         return func
-    #     return decorator
-    
-    # def safe_execute(op, _name, default=None, _context=None):
-    #     try:
-    #         return op()
-    #     except Exception:
-    #         return default
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -185,81 +131,6 @@ class ExcelCacheManager:
         return should_save
 
 
-class ExcelBackupManager:
-    """Manages Excel file backups with optimized file operations."""
-    
-    def __init__(self, excel_file_path: str):
-        """
-        Initialize backup manager.
-        
-        Args:
-            excel_file_path: Path to the main Excel file
-        """
-        self.excel_file_path = Path(excel_file_path)
-        self.backup_dir = self.excel_file_path.parent / "backups"
-        self.logger = get_logger(self.__class__.__name__)
-    
-    @handle_errors(show_user_message=False)
-    def create_backup(self) -> Optional[str]:
-        """
-        Create a backup of the Excel file.
-        
-        Returns:
-            Optional[str]: Path to backup file or None if failed
-        """
-        if not excel_config.excel_backup_enabled:
-            return None
-        
-        if not self.excel_file_path.exists():
-            self.logger.warning("Excel file doesn't exist, skipping backup")
-            return None
-        
-        # Create backup directory if it doesn't exist
-        self.backup_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Generate backup filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_filename = f"{self.excel_file_path.stem}_{timestamp}.xlsx"
-        backup_path = self.backup_dir / backup_filename
-        
-        try:
-            # Copy the file
-            shutil.copy2(self.excel_file_path, backup_path)
-            self.logger.info("Backup created", backup_path=str(backup_path))
-            
-            # Clean up old backups
-            self._cleanup_old_backups()
-            
-            return str(backup_path)
-            
-        except Exception as e:
-            self.logger.error("Failed to create backup", error=str(e))
-            return None
-    
-    def _cleanup_old_backups(self) -> None:
-        """Remove old backup files based on configuration."""
-        try:
-            # Get all backup files
-            backup_files = list(self.backup_dir.glob(f"{self.excel_file_path.stem}_*.xlsx"))
-            
-            # Sort by modification time (newest first)
-            backup_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
-            
-            # Remove excess backups
-            if len(backup_files) > excel_config.excel_backup_count:
-                files_to_remove = backup_files[excel_config.excel_backup_count:]
-                for file_path in files_to_remove:
-                    file_path.unlink()
-                    self.logger.debug("Removed old backup", file=str(file_path))
-                
-                self.logger.info("Backup cleanup completed", 
-                               removed_count=len(files_to_remove),
-                               remaining_count=excel_config.excel_backup_count)
-        
-        except Exception as e:
-            self.logger.warning("Backup cleanup failed", error=str(e))
-
-
 class ExcelHandler:
     """Comprehensive Excel file handler for Places Management System with numpy/pandas optimization."""
     
@@ -268,7 +139,6 @@ class ExcelHandler:
         self.excel_file_path = Path(excel_config.excel_file_path)
         self.sheet_name = excel_config.sheet_name
         self.cache_manager = ExcelCacheManager()
-        self.backup_manager = ExcelBackupManager(excel_config.excel_file_path)
         self.logger = get_logger(self.__class__.__name__)
         
         # Ensure directory exists
@@ -380,14 +250,13 @@ class ExcelHandler:
     
     @handle_errors(show_user_message=False)
     @log_performance("excel_write_operation")
-    def write_excel_data(self, df: pd.DataFrame, create_backup: bool = True) -> bool:
+    def write_excel_data(self, df: pd.DataFrame) -> bool:
         """
-        Write data to Excel file with backup and error handling.
+        Write data to Excel file with error handling.
         Optimized with pandas for faster data processing.
         
         Args:
             df: DataFrame to write
-            create_backup: Whether to create a backup before writing
             
         Returns:
             bool: True if successful
@@ -401,10 +270,6 @@ class ExcelHandler:
                          file_path=str(self.excel_file_path))
         
         try:
-            # Create backup if requested and file exists
-            if create_backup:
-                self.backup_manager.create_backup()
-            
             # Ensure all required columns are present
             for col in excel_config.excel_columns:
                 if col not in df.columns:
@@ -465,9 +330,7 @@ class ExcelHandler:
             # Update cache
             self.cache_manager.update_cache(df_ordered)
             
-            self.logger.info("Excel data written successfully", 
-                           records=len(df_ordered),
-                           file_path=str(self.excel_file_path))
+            # self.logger.info("Excel data written successfully", records=len(df_ordered),file_path=str(self.excel_file_path))
             
             return True
             
@@ -496,7 +359,7 @@ class ExcelHandler:
         # Check if we need to update based on operation count
         should_auto_save = self.cache_manager.increment_operation_count()
         
-        return self.write_excel_data(database_df, create_backup=should_auto_save)
+        return self.write_excel_data(database_df)
     
     @handle_errors(show_user_message=False)
     def add_place_to_excel(self, place_data: Dict[str, Any]) -> bool:
@@ -655,7 +518,6 @@ class ExcelHandler:
                 'file_path': str(self.excel_file_path),
                 'sync_enabled': excel_config.enable_excel_sync,
                 'cache_enabled': excel_config.use_excel_cache,
-                'backup_enabled': excel_config.excel_backup_enabled,
             }
             
             if self.excel_file_path.exists():
@@ -711,8 +573,8 @@ class ExcelHandler:
         # Clear cache first
         self.clear_cache()
         
-        # Write data with backup
-        return self.write_excel_data(database_df, create_backup=True)
+        # Write data
+        return self.write_excel_data(database_df)
 
 
 # Global Excel handler instance
@@ -755,7 +617,6 @@ def get_excel_stats() -> Dict[str, Any]:
 __all__ = [
     'ExcelHandler',
     'ExcelCacheManager',
-    'ExcelBackupManager',
     'excel_handler',
     'read_places_from_excel',
     'sync_excel_with_database',

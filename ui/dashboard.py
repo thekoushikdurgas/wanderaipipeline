@@ -123,7 +123,15 @@ class MetricsCalculator:
         
         # Vectorized basic counts
         metrics['total_places'] = len(places_df)
-        metrics['unique_types'] = places_df['types'].nunique()
+        
+        # Calculate unique types by splitting comma-separated values
+        all_types = []
+        for types_str in places_df['types'].dropna():
+            if isinstance(types_str, str):
+                # Split by comma and strip whitespace
+                types_list = [t.strip() for t in types_str.split(',') if t.strip()]
+                all_types.extend(types_list)
+        metrics['unique_types'] = len(set(all_types)) if all_types else 0
         
         # New metrics for rating, followers, and country
         if 'rating' in places_df.columns:
@@ -444,8 +452,16 @@ class ChartsGenerator:
         if places_df.empty:
             return None
         
-        # Vectorized type counting
-        type_counts = places_df['types'].value_counts().head(10)  # Top 10 types
+        # Split comma-separated types and count individual types
+        all_types = []
+        for types_str in places_df['types'].dropna():
+            if isinstance(types_str, str):
+                # Split by comma and strip whitespace
+                types_list = [t.strip() for t in types_str.split(',') if t.strip()]
+                all_types.extend(types_list)
+        
+        # Count individual types
+        type_counts = pd.Series(all_types).value_counts()  # Top 10 types
         
         # Use numpy arrays for faster plotting
         values = type_counts.values
@@ -455,7 +471,7 @@ class ChartsGenerator:
             x=values,
             y=labels,
             orientation='h',
-            title="📊 Places by Type (Top 10)",
+            title="📊 Places by Type",
             labels={'x': 'Number of Places', 'y': 'Place Type'},
             color=values,
             color_continuous_scale='viridis'
@@ -504,8 +520,20 @@ class ChartsGenerator:
             logger.warning("No valid coordinates found for map")
             return None
         
+        # Create a copy for processing types
+        map_df = valid_coords.copy()
+        
+        # Extract first type from comma-separated types for better color grouping
+        def get_first_type(types_str):
+            if pd.isna(types_str) or not isinstance(types_str, str):
+                return 'Unknown'
+            types_list = [t.strip() for t in types_str.split(',') if t.strip()]
+            return types_list[0] if types_list else 'Unknown'
+        
+        map_df['primary_type'] = map_df['types'].apply(get_first_type)
+        
         fig = px.scatter_mapbox(
-            valid_coords,
+            map_df,
             lat='latitude',
             lon='longitude',
             hover_name='name',
@@ -516,7 +544,7 @@ class ChartsGenerator:
                 'latitude': ':.4f',
                 'longitude': ':.4f'
             },
-            color='types',
+            color='primary_type',
             title="🗺️ Geographic Distribution of Places",
             zoom=analytics_config.default_zoom,
             height=analytics_config.chart_height
@@ -826,20 +854,19 @@ class DashboardRenderer:
             )
         
         with col3:
-            avg_lat = metrics.get('avg_latitude', 0)
-            st.metric(
-                "Avg Latitude", 
-                f"{avg_lat:.4f}" if avg_lat else "0.0000",
-                help="Average latitude of all places"
-            )
+                st.metric(
+                    "Most Common Type",
+                    metrics.get('most_common_type', 'N/A'),
+                    help="Most frequently occurring place type"
+                )
         
         with col4:
-            avg_lon = metrics.get('avg_longitude', 0)
-            st.metric(
-                "Avg Longitude", 
-                f"{avg_lon:.4f}" if avg_lon else "0.0000",
-                help="Average longitude of all places"
-            )
+                spread = metrics.get('coordinate_spread', {}).get('geographic_spread', 0)
+                st.metric(
+                    "Geographic Spread",
+                    f"{spread:.4f}°" if spread else "0.0000°",
+                    help="Geographic distribution span"
+                )
         
         # Additional metrics row
         if time_metrics and 'daily_addition_rate' in time_metrics:
@@ -854,59 +881,24 @@ class DashboardRenderer:
             
             with col2:
                 st.metric(
-                    "Most Common Type",
-                    metrics.get('most_common_type', 'N/A'),
-                    help="Most frequently occurring place type"
+                    "Unique Pincodes",
+                    metrics.get('unique_pincodes', 0),
+                    help="Number of unique pincodes covered"
                 )
-            
             with col3:
-                spread = metrics.get('coordinate_spread', {}).get('geographic_spread', 0)
+                pincode_coverage = metrics.get('pincode_coverage', 0)
                 st.metric(
-                    "Geographic Spread",
-                    f"{spread:.4f}°" if spread else "0.0000°",
-                    help="Geographic distribution span"
+                    "Pincode Coverage",
+                    f"{pincode_coverage:.1f}%",
+                    help="Percentage of places with pincode data"
                 )
-            
             with col4:
-                peak_hour = time_metrics.get('peak_hour', 0)
+                address_completeness = metrics.get('address_completeness', 0)
                 st.metric(
-                    "Peak Hour",
-                    f"{peak_hour:02d}:00",
-                    help="Hour with most place additions"
+                    "Address Completeness",
+                    f"{address_completeness:.1f}%",
+                    help="Percentage of places with complete address"
                 )
-        
-        # Enhanced metrics row based on schema columns
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric(
-                "Unique Pincodes",
-                metrics.get('unique_pincodes', 0),
-                help="Number of unique pincodes covered"
-            )
-        
-        with col2:
-            pincode_coverage = metrics.get('pincode_coverage', 0)
-            st.metric(
-                "Pincode Coverage",
-                f"{pincode_coverage:.1f}%",
-                help="Percentage of places with pincode data"
-            )
-        
-        with col3:
-            address_completeness = metrics.get('address_completeness', 0)
-            st.metric(
-                "Address Completeness",
-                f"{address_completeness:.1f}%",
-                help="Percentage of places with complete address"
-            )
-        
-        with col4:
-            st.metric(
-                "Unique Countries",
-                metrics.get('unique_countries', 0),
-                help="Number of unique countries represented"
-            )
     
     @staticmethod
     def _render_charts_section(places_df: pd.DataFrame) -> None:
@@ -914,29 +906,23 @@ class DashboardRenderer:
         st.markdown("### 📊 Visual Analytics")
         
         # Create two columns for charts
-        col1, col2 = st.columns(2)
+        # col1, col2 = st.columns(2)
         
-        with col1:
+        # with col1:
             # Places by type chart
-            type_chart = safe_execute(
-                lambda: ChartsGenerator.create_places_by_type_chart(places_df),
-                "create_type_chart"
-            )
-            if type_chart:
-                st.plotly_chart(type_chart, width='stretch')
-            else:
-                st.info("Unable to generate places by type chart")
+        type_chart = safe_execute(lambda: ChartsGenerator.create_places_by_type_chart(places_df),"create_type_chart")
+        if type_chart:
+            st.plotly_chart(type_chart, width='stretch')
+        else:
+            st.info("Unable to generate places by type chart")
         
-        with col2:
+        # with col2:
             # Geographic distribution map
-            geo_map = safe_execute(
-                lambda: ChartsGenerator.create_geographic_distribution_map(places_df),
-                "create_geo_map"
-            )
-            if geo_map:
-                st.plotly_chart(geo_map, width='stretch')
-            else:
-                st.info("Unable to generate geographic map")
+        geo_map = safe_execute(lambda: ChartsGenerator.create_geographic_distribution_map(places_df),"create_geo_map")
+        if geo_map:
+            st.plotly_chart(geo_map, width='stretch')
+        else:
+            st.info("Unable to generate geographic map")
         
         # Timeline chart (full width)
         if 'created_at' in places_df.columns:
@@ -956,29 +942,26 @@ class DashboardRenderer:
             st.plotly_chart(heatmap, width='stretch')
         
         # New charts based on schema columns
-        col1, col2 = st.columns(2)
+        # col1, col2 = st.columns(2)
         
-        with col1:
-            # Pincode distribution chart
-            pincode_chart = safe_execute(
-                lambda: ChartsGenerator.create_pincode_distribution_chart(places_df),
-                "create_pincode_chart"
-            )
-            if pincode_chart:
-                st.plotly_chart(pincode_chart, width='stretch')
-            else:
-                st.info("Unable to generate pincode distribution chart")
+        # with col1:
+        #     # Pincode distribution chart
+        #     pincode_chart = safe_execute(
+        #         lambda: ChartsGenerator.create_pincode_distribution_chart(places_df),
+        #         "create_pincode_chart"
+        #     )
+        #     if pincode_chart:
+        #         st.plotly_chart(pincode_chart, width='stretch')
+        #     else:
+        #         st.info("Unable to generate pincode distribution chart")
         
-        with col2:
+        # with col2:
             # Data quality chart
-            quality_chart = safe_execute(
-                lambda: ChartsGenerator.create_data_quality_chart(places_df),
-                "create_quality_chart"
-            )
-            if quality_chart:
-                st.plotly_chart(quality_chart, width='stretch')
-            else:
-                st.info("Unable to generate data quality chart")
+        quality_chart = safe_execute(lambda: ChartsGenerator.create_data_quality_chart(places_df),"create_quality_chart")
+        if quality_chart:
+            st.plotly_chart(quality_chart, width='stretch')
+        else:
+            st.info("Unable to generate data quality chart")
     
     @staticmethod
     def _render_data_quality_section(data_quality: Dict[str, Any]) -> None:

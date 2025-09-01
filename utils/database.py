@@ -19,57 +19,11 @@ import time
 import numpy as np
 
 # Import utilities
-try:
-    from utils.settings import db_config, get_database_connection_string, excel_config
-    from utils.logger import get_logger, log_performance
-    from utils.error_handlers import handle_database_errors, DatabaseError, safe_execute
-    from utils.excel_handler import excel_handler
-    from models.place import Place
-except ImportError:
-    # Fallback for development without modules
-    class MockConfig:
-        echo_sql = False
-        pool_size = 10
-        max_overflow = 20
-    db_config = MockConfig()
-    
-    def get_database_connection_string():
-        return os.getenv("DATABASE_URL", "")
-    
-    class MockLogger:
-        def debug(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
-        def info(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
-        def warning(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
-        def error(self, msg, **kwargs): 
-            # Mock logger - no operation implementation
-            pass
-    
-    def get_logger(_name):
-        # Mock function - parameter name ignored
-        return MockLogger()
-    
-    def log_performance(_name):
-        # Mock decorator - parameter name ignored
-        def decorator(func):
-            return func
-        return decorator
-    
-    def handle_database_errors(func):
-        # Mock decorator - returns function unchanged
-        return func
-    
-    def safe_execute(op, _name, default=None, _context=None):
-        # Mock function - execute operation with basic error handling
-        try:
-            return op()
-        except Exception:  # Catch specific exception type
-            return default
+from utils.settings import db_config, get_database_connection_string, excel_config
+from utils.logger import get_logger, log_performance
+from utils.error_handlers import handle_database_errors, DatabaseError, safe_execute
+from utils.excel_handler import excel_handler
+from models.place import Place
 
 # Load environment variables
 load_dotenv()
@@ -750,7 +704,7 @@ class PlacesDatabase:
                         )
                 
                 conn.commit()
-                logger.info("Place added successfully", id=id, name=name)
+                # logger.info("Place added successfully", id=id, name=name)
                 return True
                 
         except SQLAlchemyError as e:
@@ -1220,10 +1174,8 @@ class PlacesDatabase:
             # Use the existing add_place_full method
             success = self.add_place_full(place_data)
             
-            if success:
-                logger.info("Place added successfully using model", name=place.name)
-            else:
-                logger.error("Failed to add place using model", name=place.name)
+            if not success:
+                logger.error(f"Failed to add place using model: {place.name}")
             
             return success
             

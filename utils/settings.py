@@ -194,8 +194,6 @@ class ExcelConfig:
     excel_file_path: str = "utils/places.xlsx"
     sheet_name: str = "Places"
     enable_excel_sync: bool = True
-    excel_backup_enabled: bool = True
-    excel_backup_count: int = 5
 
     # Performance settings
     use_excel_cache: bool = True
@@ -405,6 +403,7 @@ def get_default_types() -> List[str]:
     Returns:
         List[str]: Default types list
     """
+    
     return [
         "accounting",
         "airport",

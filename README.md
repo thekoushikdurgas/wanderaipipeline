@@ -18,7 +18,7 @@ A modern Streamlit-based CRUD (Create, Read, Update, Delete) application for man
 - **Excel Synchronization**: Automatic sync between PostgreSQL database and Excel file (`utils/places.xlsx`)
 - **Fast Mode**: Option to read from Excel cache for lightning-fast response times
 - **Real-time CRUD**: All Create, Read, Update, Delete operations sync to Excel instantly
-- **Backup System**: Automatic Excel file backups with configurable retention
+
 - **Cache Management**: Intelligent caching with automatic expiration and manual refresh
 - **Excel Management Dashboard**: Monitor sync status, file size, and record counts
 
@@ -156,8 +156,43 @@ The application uses PostgreSQL with a `places` table containing the following c
    - User: postgres.evsjreawstqtkcsbwfjt
    - Password: F5jhYj-X3Wx!nf7
 
-4. **Environment file is ready**:
-   The `.env` file has been created with the correct credentials
+4. **Environment Configuration**:
+   
+   **Option 1: Use the setup script (recommended):**
+   
+   ```bash
+   python setup_env.py
+   ```
+   
+   **Option 2: Manual setup:**
+   
+   Copy the example environment file and configure your settings:
+   
+   ```bash
+   cp env.example .env
+   ```
+   
+   **Required Environment Variables:**
+   
+   - **Database Configuration**: PostgreSQL connection parameters
+     - `user`: Database username
+     - `password`: Database password  
+     - `host`: Database host
+     - `port`: Database port (default: 5432)
+     - `dbname`: Database name
+     - `DATABASE_URL`: Alternative connection string format
+   
+   - **Application Configuration**:
+     - `DEBUG`: Set to `True` to enable debug mode and performance logging
+     - `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+   
+   - **OLA Maps API Configuration** (optional):
+     - `OLA_MAPS_API_KEY`: API key for OLA Maps services
+     - `OLA_MAPS_BEARER_TOKEN`: Bearer token for API authentication
+   
+   **Note**: The current configuration uses Supabase PostgreSQL with the provided credentials.
+
+**Performance Logging**: Set `DEBUG=True` to enable performance monitoring and timing information for database and Excel operations.
 
 5. **Run the application**:
 
