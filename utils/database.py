@@ -131,7 +131,9 @@ class PlacesDatabase:
                 pool_pre_ping=True,  # Verify connections before use
                 pool_recycle=3600,   # Recycle connections every hour
                 connect_args={
-                    "options": "-c timezone=UTC"  # Set timezone
+                    "options": "-c timezone=UTC -c client_encoding=utf8",  # Set timezone and encoding
+                    "connect_timeout": 30,
+                    "application_name": "PlacesManagementSystem"
                 }
             )
             
@@ -199,7 +201,8 @@ class PlacesDatabase:
                 port=self.port,
                 dbname=self.dbname,
                 connect_timeout=30,  # 30 second timeout
-                application_name="PlacesManagementSystem"
+                application_name="PlacesManagementSystem",
+                options="-c timezone=UTC -c client_encoding=utf8"
             )
             
             logger.debug("psycopg2 connection established successfully")

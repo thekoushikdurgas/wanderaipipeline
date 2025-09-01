@@ -2,6 +2,9 @@
 pip install -r requirements.txt
 python -m streamlit run app.py
 
+python3 -Bc "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('*.py[co]')]"
+python3 -Bc "import pathlib; [p.rmdir() for p in pathlib.Path('.').rglob('__pycache__')]"
+
 # Run the main application
 streamlit run app.py
 
