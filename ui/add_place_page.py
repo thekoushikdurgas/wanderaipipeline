@@ -234,7 +234,7 @@ class AddPlacePage:
                 if nearby_endpoint:
                     # latlongs['done'] = 0
                     # for i in get_default_types():
-                    #     latlongs.drop(columns=i, axis=1, inplace=True)
+                    #     latlongs[i] = 0
                     # latlongs.to_csv("utils/pincodes_final.csv", index=False)
                     if st.button("🚀 Test Nearby Search API", type="primary"):
                         with st.spinner("Testing Nearby Search API..."):
@@ -278,6 +278,8 @@ class AddPlacePage:
             if latlongs.loc[latlong_idx,"done"] == 1:
                 break
             for type_idx, types in enumerate(types_list):
+                if latlongs.loc[latlong_idx,types] > 0:
+                    break
                 # Update Progress Bar 2: Types progress
                 types_progress_percentage = (type_idx + 1) / total_types
                 types_progress_bar.progress(types_progress_percentage)
@@ -297,6 +299,8 @@ class AddPlacePage:
                         if isinstance(response_data, str):
                             response_data = json.loads(response_data)
                         if "predictions" in response_data:
+                            latlongs.loc[latlong_idx,types] = len(response_data["predictions"])
+                            latlongs.to_csv("utils/pincodes.csv", index=False)
                             self.predictions_json(response_data["predictions"],latlongs.loc[latlong_idx],types)
                         elif "message" in response_data:
                             st.warning("Authentication error detected. Attempting to refresh bearer token...")
@@ -313,6 +317,8 @@ class AddPlacePage:
                                     if isinstance(retry_response, str):
                                         retry_response = json.loads(retry_response)
                                     if "predictions" in retry_response:
+                                        latlongs.loc[latlong_idx,types] = len(response_data["predictions"])
+                                        latlongs.to_csv("utils/pincodes.csv", index=False)
                                         self.predictions_json(retry_response["predictions"],latlongs.loc[latlong_idx],types)
                                     elif "error_message" in retry_response:
                                         st.error(f"API Error: {retry_response["error_message"]}")
